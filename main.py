@@ -1,6 +1,5 @@
 """
-XSS Game 0.3.1 "NETWORK FOUNDATIONS" - Главный файл
-Основной файл запуска игры с исправленными критическими багами
+XSS Game 0.3.8.2 "NETWORK FOUNDATIONS" - Главный файл
 """
 
 import os
