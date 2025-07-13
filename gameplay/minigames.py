@@ -4008,71 +4008,241 @@ class DataMiningGame(Minigame):
         print(f"\n{XSSColors.ERROR}❌ Провал! Искомая информация была: '{target_info}'.{XSSColors.RESET}")
         return False
 
+
 class ForensicAnalysisGame(Minigame):
-    """Мини-игра "Судебный анализ"."""
+    """Мини-игра "Судебный анализ"""
+
     def __init__(self):
         super().__init__(
             "Судебный анализ",
-            "Найдите 'улику' среди множества нерелевантных данных",
+            "Найдите 'улику' среди множества нерелевантных данных, анализируя различные типы источников.",
             "scanning"
         )
+        self.clue_types = {
+            "log": {
+                "relevant": [
+                    "Log entry: {timestamp} - Unusual admin login from {ip_address}",
+                    "Log entry: {timestamp} - Critical error in system_core, process ID {pid}",
+                    "Log entry: {timestamp} - Unauthorized access attempt on database 'users'",
+                    "Log entry: {timestamp} - File deletion detected: {filename} by user 'sysadmin'"
+                ],
+                "irrelevant": [
+                    "Log entry: {timestamp} - User 'guest' logged out.",
+                    "Log entry: {timestamp} - System uptime check passed.",
+                    "Log entry: {timestamp} - Routine backup completed successfully.",
+                    "Log entry: {timestamp} - Info: CPU temperature nominal."
+                ]
+            },
+            "email": {
+                "relevant": [
+                    "Email: 'URGENT - Transfer funds to offshore account {account_id}' from {sender}",
+                    "Email: 'Confidential project details' attached in email from {sender}",
+                    "Email: 'RE: Phase 3 Operations - Target coordinates: {coords}'",
+                    "Email: 'Payment confirmation for illegal software license {license_id}'"
+                ],
+                "irrelevant": [
+                    "Email: 'Reminder: Friday team meeting at 2 PM'",
+                    "Email: 'Newsletter subscription confirmation'",
+                    "Email: 'Your order #{order_id} has been shipped'",
+                    "Email: 'Holiday greetings from company X'"
+                ]
+            },
+            "file": {
+                "relevant": [
+                    "Deleted file: '{filename_secret}.doc' (recovered from Recycle Bin)",
+                    "File metadata: '{filename_exec}' last accessed by unauthorized process '{process_id}'",
+                    "Hidden file: '{hidden_filename}' found in system directory",
+                    "Corrupted file: '{corrupted_filename}' with unusual size and timestamp"
+                ],
+                "irrelevant": [
+                    "File: 'my_cat_pics_{num}.jpg'",
+                    "File: 'report_{month}.pdf' (standard company report)",
+                    "File: 'config.ini' (system default configuration)",
+                    "File: 'memo_{date}.txt' (daily internal memo)"
+                ]
+            },
+            "registry": {
+                "relevant": [
+                    "Registry key: HKLM\\Software\\MalwareCo\\backdoor_active (value: 1)",
+                    "Registry key: HKCU\\Run\\PersistenceService (value: '{path_to_malware}.exe')",
+                    "Registry key: HKLM\\System\\ControlSet001\\Services\\{service_name}\\Parameters\\BypassAuth (value: true)",
+                    "Registry key: HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\Run\\{program_id}: '{random_path}'"
+                ],
+                "irrelevant": [
+                    "Registry key: HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+                    "Registry key: HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
+                    "Registry key: HKCU\\Control Panel\\Desktop",
+                    "Registry key: HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager"
+                ]
+            },
+            "network": {
+                "relevant": [
+                    "Network traffic: Large data transfer ({size}GB) to unknown IP {ip_address}",
+                    "Network traffic: Encrypted tunnel established to {country_code} IP {ip_address}",
+                    "Network traffic: Port scan detected from {source_ip} targeting port {port_num}",
+                    "Network traffic: DNS exfiltration attempt for domain '{domain}'"
+                ],
+                "irrelevant": [
+                    "Network traffic: Standard DNS query for google.com",
+                    "Network traffic: Routine NTP sync with time.windows.com",
+                    "Network traffic: Small HTTP request to cdn.example.com",
+                    "Network traffic: PING request to local gateway 192.168.1.1"
+                ]
+            }
+        }
+
+    def _generate_timestamp(self):
+        # Генерируем случайную дату/время за последний месяц
+        days_ago = random.randint(1, 30)
+        hours_ago = random.randint(0, 23)
+        minutes_ago = random.randint(0, 59)
+        from datetime import datetime, timedelta
+        dt = datetime.now() - timedelta(days=days_ago, hours=hours_ago, minutes=minutes_ago)
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    def _generate_ip_address(self, is_internal=False):
+        if is_internal:
+            return f"192.168.{random.randint(0, 255)}.{random.randint(1, 254)}"
+        return f"{random.randint(1, 254)}.{random.randint(1, 254)}.{random.randint(1, 254)}.{random.randint(1, 254)}"
+
+    def _generate_random_string(self, length=8):
+        import string
+        return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+    def _generate_data_entry(self, is_relevant: bool, clue_type: str) -> str:
+        templates = self.clue_types[clue_type]["relevant" if is_relevant else "irrelevant"]
+        template = random.choice(templates)
+
+        # Заполнение плейсхолдеров
+        replacements = {
+            "{timestamp}": self._generate_timestamp(),
+            "{ip_address}": self._generate_ip_address(is_internal=random.choice([True, False])),
+            "{filename}": f"{self._generate_random_string(6)}.txt",
+            "{sender}": f"{self._generate_random_string(5)}@{self._generate_random_string(4)}.com",
+            "{account_id}": self._generate_random_string(6).upper(),
+            "{pid}": str(random.randint(1000, 9999)),
+            "{filename_secret}": f"secret_proj_{self._generate_random_string(4)}",
+            "{filename_exec}": f"tool_{self._generate_random_string(3)}.exe",
+            "{process_id}": self._generate_random_string(7),
+            "{hidden_filename}": f".hidden_data_{self._generate_random_string(5)}.dat",
+            "{corrupted_filename}": f"corrupt_file_{self._generate_random_string(4)}.bin",
+            "{num}": str(random.randint(1, 100)),
+            "{month}": random.choice(
+                ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]),
+            "{date}": f"{random.randint(1, 28)}_{random.randint(1, 12)}_{random.randint(2023, 2025)}",
+            "{license_id}": f"{self._generate_random_string(4)}-{self._generate_random_string(4)}-{self._generate_random_string(4)}",
+            "{coords}": f"{random.uniform(-90, 90):.4f}, {random.uniform(-180, 180):.4f}",
+            "{size}": str(random.randint(10, 500)),
+            "{country_code}": random.choice(["CN", "RU", "KP", "IR", "US"]),
+            "{source_ip}": self._generate_ip_address(),
+            "{port_num}": str(random.randint(1, 65535)),
+            "{domain}": f"{self._generate_random_string(6)}.com",
+            "{program_id}": self._generate_random_string(7),
+            "{random_path}": f"C:\\Users\\Public\\{self._generate_random_string(5)}\\{self._generate_random_string(6)}.exe",
+            "{service_name}": self._generate_random_string(8)
+        }
+
+        for placeholder, value in replacements.items():
+            template = template.replace(placeholder, value)
+
+        return template
+
+    def _examine_entry(self, entry: str, is_target: bool):
+        """Предоставляет детальный анализ выбранной записи."""
+        print(f"\n{XSSColors.CYAN}--- Детальный Анализ Записи ---{XSSColors.RESET}")
+        print(f"{XSSColors.WHITE}Запись:{XSSColors.RESET} {entry}")
+
+        time.sleep(1)  # Имитация процесса анализа
+
+        if is_target:
+            print(
+                f"{XSSColors.LIGHT_GREEN}Анализ завершен: Обнаружены аномалии! Эта запись содержит потенциально важные улики. Рекомендуется дальнейшее расследование.{XSSColors.RESET}")
+        else:
+            print(
+                f"{XSSColors.LIGHT_GRAY}Анализ завершен: Запись кажется обычной. Нет явных признаков подозрительной активности.{XSSColors.RESET}")
+        print(f"{XSSColors.CYAN}-------------------------------{XSSColors.RESET}\n")
+        time.sleep(1)
 
     def play(self) -> bool:
         audio_system.play_sound("minigame_start")
         print(f"\n{XSSColors.WARNING}━━━━━━━━━━ СУДЕБНЫЙ АНАЛИЗ ━━━━━━━━━━{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}Добро пожаловать в игру 'Судебный анализ'!{XSSColors.RESET}")
+        print(
+            f"{XSSColors.INFO}Ваша задача — найти единственную 'улику' среди множества данных, указывающую на подозрительную активность.{XSSColors.RESET}")
+        print(
+            f"{XSSColors.INFO}Вы можете {XSSColors.WHITE}'изучить'{XSSColors.INFO} любую запись, чтобы получить больше информации, прежде чем сделать свой выбор.{XSSColors.RESET}\n")
 
-        clues = [
-            "Log entry: 2025-06-20 03:15:22 - Admin login from 192.168.1.10 (unusual)",
-            "Email: 'URGENT - Transfer funds to offshore account X2Y3Z4'",
-            "Deleted file: 'project_nemesis_plans.doc'",
-            "Registry key: HKLM\\Software\\MalwareCo\\backdoor_active (value: 1)",
-            "Network traffic: Large data transfer to unknown IP 172.20.1.5"
-        ]
+        skill_level = game_state.get_skill(self.skill)
+        num_irrelevant_entries = 5 + skill_level * 2  # Больше шума на высоких уровнях
 
-        irrelevant_data = [
-            "Log entry: 2025-06-20 10:00:00 - User 'guest' logged out.",
-            "Email: 'Reminder: Friday team meeting at 2 PM'",
-            "File: 'my_cat_pics.jpg'",
-            "Registry key: HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
-            "Network traffic: Standard DNS query for google.com"
-        ]
+        all_clue_types = list(self.clue_types.keys())
+        target_clue_type = random.choice(all_clue_types)
 
-        target_clue = random.choice(clues)
+        target_clue_data = self._generate_data_entry(is_relevant=True, clue_type=target_clue_type)
 
-        # Создаем список данных, перемешиваем
-        data_list = random.sample(irrelevant_data, k=min(len(irrelevant_data), 5 + game_state.get_skill(self.skill)//2))
-        data_list.append(target_clue)
-        random.shuffle(data_list)
+        data_list_objects = []
+        for _ in range(num_irrelevant_entries):
+            random_clue_type = random.choice(all_clue_types)
+            data_list_objects.append(
+                {"content": self._generate_data_entry(is_relevant=False, clue_type=random_clue_type),
+                 "is_target": False})
 
-        print(f"{XSSColors.INFO}Вы проводите судебный анализ данных. Ваша задача - найти одну единственную 'улику', которая указывает на подозрительную активность.{XSSColors.RESET}")
-        print(f"{XSSColors.INFO}Прочитайте записи и введите номер записи, которая является уликой.{XSSColors.RESET}\n")
+        data_list_objects.append({"content": target_clue_data, "is_target": True})
+        random.shuffle(data_list_objects)
 
-        for i, entry in enumerate(data_list, 1):
-            print(f"   {i}. {entry}")
+        attempts = 2  # Можно сделать зависимым от сложности/навыка
 
-        attempts = 2
         while attempts > 0:
-            try:
-                user_choice_idx = int(audio_system.get_input_with_sound(f"{XSSColors.PROMPT}Номер улики: {XSSColors.RESET}"))
+            print(f"{XSSColors.HEADER}--- ДОСТУПНЫЕ ДАННЫЕ ДЛЯ АНАЛИЗА ({attempts} попыток) ---{XSSColors.RESET}")
+            for i, entry_obj in enumerate(data_list_objects, 1):
+                print(f"    {XSSColors.PROMPT}{i}.{XSSColors.RESET} {entry_obj['content']}")
+            print(f"{XSSColors.HEADER}--------------------------------------------------{XSSColors.RESET}\n")
 
-                if not (1 <= user_choice_idx <= len(data_list)):
-                    print(f"{XSSColors.ERROR}Неверный номер. Попробуйте еще раз.{XSSColors.RESET}")
-                    continue
+            user_action = audio_system.get_input_with_sound(
+                f"{XSSColors.PROMPT}Введите {XSSColors.WHITE}'номер'{XSSColors.PROMPT} записи для анализа или {XSSColors.WHITE}'g'{XSSColors.PROMPT} для догадки: {XSSColors.RESET}").lower()
 
-                user_guess_clue = data_list[user_choice_idx - 1]
+            if user_action == 'g':
+                # Фаза догадки
+                try:
+                    guess_idx = int(audio_system.get_input_with_sound(
+                        f"{XSSColors.PROMPT}Введите номер записи, которая является уликой: {XSSColors.RESET}"))
+                    if not (1 <= guess_idx <= len(data_list_objects)):
+                        print(f"{XSSColors.ERROR}Неверный номер. Попробуйте еще раз.{XSSColors.RESET}")
+                        continue
 
-                if user_guess_clue == target_clue:
-                    audio_system.play_sound("minigame_win")
-                    print(f"\n{XSSColors.SUCCESS}🎉 УСПЕХ! Вы успешно нашли улику: '{target_clue}'!{XSSColors.RESET}")
-                    return True
-                else:
-                    attempts -= 1
-                    print(f"{XSSColors.ERROR}Неверно. Эта запись не является уликой. Попыток осталось: {attempts}.{XSSColors.RESET}")
-            except ValueError:
-                print(f"{XSSColors.ERROR}Введите число.{XSSColors.RESET}")
+                    user_guess_obj = data_list_objects[guess_idx - 1]
 
-        audio_system.play_sound("minigame_lose")
-        print(f"\n{XSSColors.ERROR}❌ Провал! Уликой была запись: '{target_clue}'.{XSSColors.RESET}")
+                    if user_guess_obj["is_target"]:
+                        audio_system.play_sound("minigame_win")
+                        print(
+                            f"\n{XSSColors.SUCCESS}🎉 УСПЕХ! Вы успешно нашли улику: '{user_guess_obj['content']}'!{XSSColors.RESET}")
+                        return True
+                    else:
+                        attempts -= 1
+                        print(
+                            f"{XSSColors.ERROR}Неверно. Эта запись не является уликой. Попыток осталось: {attempts}.{XSSColors.RESET}")
+                        if attempts == 0:
+                            audio_system.play_sound("minigame_lose")
+                            # Находим правильную улику, чтобы показать ее в случае провала
+                            correct_clue_content = next(obj['content'] for obj in data_list_objects if obj['is_target'])
+                            print(
+                                f"\n{XSSColors.ERROR}❌ Провал! Уликой была запись: '{correct_clue_content}'.{XSSColors.RESET}")
+                            return False
+                except ValueError:
+                    print(f"{XSSColors.ERROR}Введите число для догадки или 'g'.{XSSColors.RESET}")
+            else:
+                # Фаза анализа
+                try:
+                    analyze_idx = int(user_action)
+                    if not (1 <= analyze_idx <= len(data_list_objects)):
+                        print(f"{XSSColors.ERROR}Неверный номер. Попробуйте еще раз.{XSSColors.RESET}")
+                        continue
+
+                    selected_entry_obj = data_list_objects[analyze_idx - 1]
+                    self._examine_entry(selected_entry_obj["content"], selected_entry_obj["is_target"])
+                except ValueError:
+                    print(f"{XSSColors.ERROR}Введите номер записи для анализа или 'g' для догадки.{XSSColors.RESET}")
+
         return False
 
 class PatternRecognitionGame(Minigame):
