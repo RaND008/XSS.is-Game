@@ -813,16 +813,45 @@ class MissionSystem:
         return self._work_multi_stage_mission(mission_id, mission_data)
 
     def _work_moral_choice_mission(self, mission_id: str, mission_data: dict) -> bool:
-        """Обработка миссий с моральными выборами"""
-        current_stage = game_state.get_stat("current_mission_stage", 0)
+        """Обработка миссий с моральными выборами и управление этапами"""
+        current_stage_index = game_state.get_stat("current_mission_stage", 0)
         stages = mission_data.get("stages", [])
 
-        stage_data = stages[current_stage]
+        # Если все этапы уже пройдены, и мы почему-то здесь, завершаем миссию (страховка)
+        if current_stage_index >= len(stages):
+            print(f"{Colors.WARNING}[!] Миссия '{mission_data['name']}' уже завершена.{Colors.RESET}")
+            return self._complete_mission(mission_data)
+
+        stage_data = stages[current_stage_index]
 
         if "moral_choice" in stage_data:
             print(f"\n{Colors.STORY}🤔 МОРАЛЬНАЯ ДИЛЕММА{Colors.RESET}")
-            return self._handle_moral_choice(stage_data["moral_choice"])
+            choice_successful = self._handle_moral_choice(stage_data["moral_choice"])
+
+            if choice_successful:
+                # Если выбор не привел к провалу, переходим к следующему этапу
+                game_state.set_stat("current_mission_stage", current_stage_index + 1)
+                print(f"\n{Colors.SUCCESS}✅ Моральный выбор сделан!{Colors.RESET}")
+
+                # Проверяем, был ли это последний этап
+                if current_stage_index + 1 >= len(stages):
+                    # Если это был последний этап, завершаем всю миссию
+                    return self._complete_multi_stage_mission(mission_id, mission_data)
+                else:
+                    # Если есть еще этапы, просто сообщаем о прогрессе и ждем следующей команды 'work'
+                    print(
+                        f"\n{Colors.INFO}Продолжение миссии. Текущий этап: {game_state.get_stat('current_mission_stage') + 1}/{len(stages)}{Colors.RESET}")
+                    return True  # Миссия не завершена, но прогресс есть, и можно продолжать
+
+            else:
+                # Если выбор привел к "mission_failure", _handle_moral_choice вернул False.
+                # В этом случае миссия считается проваленной и должна быть завершена.
+                print(f"\n{Colors.ERROR}Моральный выбор привел к провалу миссии.{Colors.RESET}")
+                # Вызываем общую логику провала миссии, которая также очистит активную миссию
+                return self._handle_mission_failure(mission_data)
+
         else:
+            # Если текущий этап не является моральным выбором, передаем управление обычной многоэтапной логике
             return self._work_multi_stage_mission(mission_id, mission_data)
 
     def _handle_moral_choice(self, choice_data: dict) -> bool:

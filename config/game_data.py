@@ -11,9 +11,9 @@ FACTIONS = {
         "philosophy": "Использовать навыки хакинга для защиты и улучшения кибербезопасности",
         "bonuses": {
             "reputation_multiplier": 2.0,  # Удвоенная репутация за этичные миссии
-            "heat_reduction": 25,           # Снижение Heat Level на 25%
-            "skill_boost": 1,               # +1 ко всем навыкам
-            "special_market": True          # Доступ к этичному рынку
+            "heat_reduction": 25,  # Снижение Heat Level на 25%
+            "skill_boost": 1,  # +1 ко всем навыкам
+            "special_market": True  # Доступ к этичному рынку
         },
         "exclusive_missions": [
             "bug_bounty_hunt", "corporate_security_audit", "government_consultation",
@@ -31,16 +31,16 @@ FACTIONS = {
         "allies": ["Корпорации", "Правительственные агентства"],
         "headquarters": "Кибер-Центр Безопасности, Силиконовая Долина"
     },
-    
+
     "blackhats": {
-        "name": "BlackHats Collective", 
+        "name": "BlackHats Collective",
         "desc": "Криминальное подполье даркнета, живущее вне закона",
         "philosophy": "Власть через код, деньги через взлом, свобода через анонимность",
         "bonuses": {
-            "btc_multiplier": 2.5,         # В 2.5 раза больше BTC за миссии
-            "risk_reduction": -10,          # Меньше шанс провала опасных миссий
-            "heat_immunity": 15,            # Частичная защита от Heat Level
-            "dark_market_access": True      # Доступ к черному рынку
+            "btc_multiplier": 2.5,  # В 2.5 раза больше BTC за миссии
+            "risk_reduction": -10,  # Меньше шанс провала опасных миссий
+            "heat_immunity": 15,  # Частичная защита от Heat Level
+            "dark_market_access": True  # Доступ к черному рынку
         },
         "exclusive_missions": [
             "crypto_exchange_hack", "ransomware_deployment", "corporate_espionage",
@@ -58,16 +58,16 @@ FACTIONS = {
         "allies": ["Криминальные синдикаты", "Коррумпированные чиновники"],
         "headquarters": "Скрытые серверы в даркнете"
     },
-    
+
     "grayhats": {
         "name": "GrayHats Syndicate",
         "desc": "Свободные агенты, играющие по своим правилам между светом и тьмой",
         "philosophy": "Мораль относительна, важна только эффективность и результат",
         "bonuses": {
-            "mission_variety": True,        # Доступ к миссиям всех фракций
-            "skill_boost": 2,               # +2 ко всем навыкам
-            "faction_immunity": True,       # Защита от фракционных войн
-            "freelancer_bonus": 1.5         # Бонус к наградам за гибкость
+            "mission_variety": True,  # Доступ к миссиям всех фракций
+            "skill_boost": 2,  # +2 ко всем навыкам
+            "faction_immunity": True,  # Защита от фракционных войн
+            "freelancer_bonus": 1.5  # Бонус к наградам за гибкость
         },
         "exclusive_missions": [
             "double_agent_operation", "information_brokerage", "neutral_arbitration",
@@ -108,7 +108,7 @@ ACHIEVEMENTS = {
         "rarity": "legendary",
         "hidden": False
     },
-    
+
     # Экономические достижения
     "crypto_millionaire": {
         "name": "Крипто-миллионер",
@@ -136,7 +136,7 @@ ACHIEVEMENTS = {
         "rarity": "uncommon",
         "hidden": True
     },
-    
+
     # Технические достижения
     "ghost_protocol": {
         "name": "Протокол Призрак",
@@ -165,7 +165,7 @@ ACHIEVEMENTS = {
         "rarity": "rare",
         "hidden": True
     },
-    
+
     # Социальные достижения
     "forum_legend": {
         "name": "Легенда форума",
@@ -194,7 +194,7 @@ ACHIEVEMENTS = {
         "rarity": "rare",
         "hidden": False
     },
-    
+
     # Фракционные достижения
     "white_knight": {
         "name": "Белый рыцарь",
@@ -207,12 +207,12 @@ ACHIEVEMENTS = {
         "req_faction": "whitehats"
     },
     "dark_lord": {
-        "name": "Повелитель тьмы", 
+        "name": "Повелитель тьмы",
         "desc": "Достигните 100 репутации в фракции BlackHats",
         "reward_rep": 50,
         "reward_items": ["dark_crown"],
         "icon": "☠️",
-        "rarity": "epic", 
+        "rarity": "epic",
         "hidden": False,
         "req_faction": "blackhats"
     },
@@ -234,7 +234,7 @@ ACHIEVEMENTS = {
         "rarity": "rare",
         "hidden": True
     },
-    
+
     # Скрытые/Секретные достижения
     "easter_egg_hunter": {
         "name": "Охотник за пасхалками",
@@ -294,7 +294,7 @@ RANDOM_EVENTS = {
     "market_volatility": {
         "name": "Рыночная волатильность",
         "desc": "Экстремальные колебания цен на рынке",
-        "type": "economic", 
+        "type": "economic",
         "probability": 0.08,
         "effects": {
             "crypto_prices": {"volatility_increase": 3.0},
@@ -303,7 +303,7 @@ RANDOM_EVENTS = {
         "duration": 5,
         "news_headline": "⚡ ШТОРМ НА РЫНКЕ: Цены скачут как бешеные!"
     },
-    
+
     # Политические/Правовые события
     "government_crackdown": {
         "name": "Правительственные облавы",
@@ -347,7 +347,7 @@ RANDOM_EVENTS = {
         "duration": 50,
         "news_headline": "📜 НОВЫЕ ЗАКОНЫ: Киберпространство под контролем"
     },
-    
+
     # Технологические события
     "major_breach": {
         "name": "Масштабная утечка данных",
@@ -391,7 +391,7 @@ RANDOM_EVENTS = {
         "duration": 25,
         "news_headline": "🤖 ИИ-РЕВОЛЮЦИЯ: Машины берут контроль над кибервойной!"
     },
-    
+
     # Социальные события
     "hacker_convention": {
         "name": "Хакерская конференция",
@@ -421,7 +421,7 @@ RANDOM_EVENTS = {
         "duration": 12,
         "news_headline": "📰 БОМБА: Инсайдер сливает государственные тайны!"
     },
-    
+
     # Специальные события
     "solar_storm": {
         "name": "Солнечная буря",
@@ -673,7 +673,6 @@ MISSIONS = {
         "story_stage": 4
     }
 
-
 }
 
 # --- Расширенные миссии ---
@@ -709,7 +708,7 @@ MISSIONS.update({
         "story_stage": 3,
         "special_rewards": ["corporate_partnership", "security_clearance"]
     },
-    
+
     # Фракционные миссии BlackHats
     "crypto_exchange_hack": {
         "name": "Взлом криптобиржи",
@@ -741,7 +740,7 @@ MISSIONS.update({
         "story_stage": 2,
         "special_rewards": ["ransomware_expertise", "fear_reputation"]
     },
-    
+
     # Фракционные миссии GrayHats
     "double_agent_operation": {
         "name": "Операция двойного агента",
@@ -773,7 +772,7 @@ MISSIONS.update({
         "story_stage": 2,
         "special_rewards": ["information_contacts", "data_cache"]
     },
-    
+
     # Специальные миссии событий
     "emergency_patch": {
         "name": "Экстренное исправление",
@@ -801,194 +800,194 @@ MISSIONS.update({
         "event_triggered": True,
         "special_rewards": ["victim_gratitude", "decryption_tools"]
     },
-"operation_darkfall": {
-    "name": "Операция 'Сумерки'",
-    "desc": "Многоэтапная операция по внедрению в корпоративную сеть",
-    "type": "multi_stage",
-    "req_rep": 80,
-    "req_skills": {"cracking": 4, "stealth": 5, "social_eng": 3},
-    "stages": [
-        {
-            "name": "Разведка цели",
-            "desc": "Соберите информацию о корпорации TechCorp",
-            "duration": 3,
-            "risk": 20,
-            "requirements": {"scanning": 4},
-            "rewards": {"intel_points": 10}
-        },
-        {
-            "name": "Социальная инженерия",
-            "desc": "Получите учетные данные сотрудника",
-            "duration": 4,
-            "risk": 40,
-            "requirements": {"social_eng": 4},
-            "rewards": {"credentials": "employee_access"}
-        },
-        {
-            "name": "Проникновение в сеть",
-            "desc": "Используйте полученные данные для взлома",
-            "duration": 5,
-            "risk": 70,
-            "requirements": {"cracking": 5, "stealth": 4},
-            "rewards": {"btc": 800, "rep": 40}
-        }
-    ],
-    "final_rewards": {"btc": 1500, "rep": 80, "items": ["corp_backdoor"]},
-    "time_limit": 72,  # часов
-    "story_stage": 3
-},
-
-"heist_crypto_exchange": {
-    "name": "Ограбление криптобиржи",
-    "desc": "Командная операция по краже из крупной биржи",
-    "type": "team_mission",
-    "req_rep": 120,
-    "req_skills": {"cracking": 6, "stealth": 5},
-    "team_size": 3,
-    "team_roles": ["hacker", "social_engineer", "lookout"],
-    "stages": [
-        {
-            "name": "Подготовка команды",
-            "desc": "Найдите и наймите союзников",
-            "duration": 2,
-            "risk": 10,
-            "team_action": "recruit"
-        },
-        {
-            "name": "Планирование",
-            "desc": "Разработайте план атаки",
-            "duration": 3,
-            "risk": 5,
-            "team_action": "planning"
-        },
-        {
-            "name": "Выполнение",
-            "desc": "Координированная атака на биржу",
-            "duration": 6,
-            "risk": 90,
-            "team_action": "execute",
-            "moral_choice": {
-                "question": "Биржа хранит средства благотворительности. Украсть всё?",
-                "choices": {
-                    "steal_all": {"rep_change": -20, "btc_bonus": 2000, "faction_impact": {"blackhats": 20}},
-                    "leave_charity": {"rep_change": 10, "btc_bonus": 0, "faction_impact": {"whitehats": 15}},
-                    "donate_anonymous": {"rep_change": 30, "btc_penalty": 500, "special_reward": "hero_status"}
-                }
+    "operation_darkfall": {
+        "name": "Операция 'Сумерки'",
+        "desc": "Многоэтапная операция по внедрению в корпоративную сеть",
+        "type": "multi_stage",
+        "req_rep": 80,
+        "req_skills": {"cracking": 4, "stealth": 5, "social_eng": 3},
+        "stages": [
+            {
+                "name": "Разведка цели",
+                "desc": "Соберите информацию о корпорации TechCorp",
+                "duration": 3,
+                "risk": 20,
+                "requirements": {"scanning": 4},
+                "rewards": {"intel_points": 10}
+            },
+            {
+                "name": "Социальная инженерия",
+                "desc": "Получите учетные данные сотрудника",
+                "duration": 4,
+                "risk": 40,
+                "requirements": {"social_eng": 4},
+                "rewards": {"credentials": "employee_access"}
+            },
+            {
+                "name": "Проникновение в сеть",
+                "desc": "Используйте полученные данные для взлома",
+                "duration": 5,
+                "risk": 70,
+                "requirements": {"cracking": 5, "stealth": 4},
+                "rewards": {"btc": 800, "rep": 40}
             }
-        }
-    ],
-    "success_rates": {"low": 0.3, "medium": 0.6, "high": 0.9},
-    "final_rewards": {"btc": 5000, "rep": 100},
-    "time_limit": 48,
-    "story_stage": 4
-},
+        ],
+        "final_rewards": {"btc": 1500, "rep": 80, "items": ["corp_backdoor"]},
+        "time_limit": 72,  # часов
+        "story_stage": 3
+    },
 
-"whistleblower_dilemma": {
-    "name": "Дилемма информатора",
-    "desc": "Получена информация о коррупции. Что делать?",
-    "type": "moral_choice",
-    "req_rep": 60,
-    "req_skills": {"scanning": 3, "social_eng": 4},
-    "stages": [
-        {
-            "name": "Получение данных",
-            "desc": "Загрузите компрометирующие документы",
-            "duration": 2,
-            "risk": 30
-        },
-        {
-            "name": "Моральный выбор",
-            "desc": "Решите судьбу полученной информации",
-            "moral_choice": {
-                "question": "У вас есть доказательства коррупции высокопоставленных чиновников. Ваши действия?",
-                "choices": {
-                    "sell_to_media": {
-                        "desc": "Продать журналистам за хорошие деньги",
-                        "rep_change": 5,
-                        "btc_bonus": 2000,
-                        "faction_impact": {"grayhats": 10}
-                    },
-                    "blackmail_officials": {
-                        "desc": "Шантажировать чиновников",
-                        "rep_change": -15,
-                        "btc_bonus": 5000,
-                        "heat_gain": 40,
-                        "faction_impact": {"blackhats": 25}
-                    },
-                    "anonymous_leak": {
-                        "desc": "Анонимно слить в интернет",
-                        "rep_change": 25,
-                        "btc_bonus": 0,
-                        "faction_impact": {"whitehats": 20},
-                        "special_reward": "whistleblower_protection"
-                    },
-                    "destroy_evidence": {
-                        "desc": "Уничтожить компромат",
-                        "rep_change": -5,
-                        "btc_bonus": 0,
-                        "heat_gain": -10,
-                        "special_consequence": "missed_opportunity"
+    "heist_crypto_exchange": {
+        "name": "Ограбление криптобиржи",
+        "desc": "Командная операция по краже из крупной биржи",
+        "type": "team_mission",
+        "req_rep": 120,
+        "req_skills": {"cracking": 6, "stealth": 5},
+        "team_size": 3,
+        "team_roles": ["hacker", "social_engineer", "lookout"],
+        "stages": [
+            {
+                "name": "Подготовка команды",
+                "desc": "Найдите и наймите союзников",
+                "duration": 2,
+                "risk": 10,
+                "team_action": "recruit"
+            },
+            {
+                "name": "Планирование",
+                "desc": "Разработайте план атаки",
+                "duration": 3,
+                "risk": 5,
+                "team_action": "planning"
+            },
+            {
+                "name": "Выполнение",
+                "desc": "Координированная атака на биржу",
+                "duration": 6,
+                "risk": 90,
+                "team_action": "execute",
+                "moral_choice": {
+                    "question": "Биржа хранит средства благотворительности. Украсть всё?",
+                    "choices": {
+                        "steal_all": {"rep_change": -20, "btc_bonus": 2000, "faction_impact": {"blackhats": 20}},
+                        "leave_charity": {"rep_change": 10, "btc_bonus": 0, "faction_impact": {"whitehats": 15}},
+                        "donate_anonymous": {"rep_change": 30, "btc_penalty": 500, "special_reward": "hero_status"}
                     }
                 }
             }
-        }
-    ],
-    "time_limit": 24,
-    "random_events": [
-        {
-            "trigger": "stage_1_complete",
-            "chance": 0.3,
-            "event": "government_trace",
-            "desc": "Спецслужбы засекли ваши действия!",
-            "effects": {"heat_gain": 25, "time_pressure": True}
-        }
-    ],
-    "story_stage": 2
-},
+        ],
+        "success_rates": {"low": 0.3, "medium": 0.6, "high": 0.9},
+        "final_rewards": {"btc": 5000, "rep": 100},
+        "time_limit": 48,
+        "story_stage": 4
+    },
 
-# Миссии с временными ограничениями
-"zero_day_auction": {
-    "name": "Аукцион Zero-Day",
-    "desc": "У вас есть 6 часов чтобы найти и продать 0-day эксплойт",
-    "type": "time_critical",
-    "req_rep": 100,
-    "req_skills": {"cracking": 7, "scanning": 6},
-    "time_limit": 6,  # часов
-    "stages": [
-        {
-            "name": "Поиск уязвимости",
-            "desc": "Найдите неизвестную уязвимость",
-            "duration": 3,
-            "risk": 60,
-            "time_pressure_multiplier": 1.5
-        },
-        {
-            "name": "Создание эксплойта",
-            "desc": "Разработайте рабочий exploit",
-            "duration": 2,
-            "risk": 40
-        },
-        {
-            "name": "Продажа на аукционе",
-            "desc": "Продайте эксплойт на черном рынке",
-            "duration": 1,
-            "risk": 80,
-            "bidding_war": True
-        }
-    ],
-    "time_bonus": {"6h": 3000, "4h": 2000, "2h": 1000},
-    "time_penalty": {"overtime": -50},  # % от награды
-    "random_events": [
-        {
-            "trigger": "time_half",
-            "chance": 0.4,
-            "event": "competitor_found",
-            "desc": "Другой хакер тоже ищет эту уязвимость!",
-            "effects": {"competition": True, "risk_increase": 20}
-        }
-    ],
-    "story_stage": 3
-}
+    "whistleblower_dilemma": {
+        "name": "Дилемма информатора",
+        "desc": "Получена информация о коррупции. Что делать?",
+        "type": "moral_choice",
+        "req_rep": 60,
+        "req_skills": {"scanning": 3, "social_eng": 4},
+        "stages": [
+            {
+                "name": "Получение данных",
+                "desc": "Загрузите компрометирующие документы",
+                "duration": 2,
+                "risk": 30
+            },
+            {
+                "name": "Моральный выбор",
+                "desc": "Решите судьбу полученной информации",
+                "moral_choice": {
+                    "question": "У вас есть доказательства коррупции высокопоставленных чиновников. Ваши действия?",
+                    "choices": {
+                        "sell_to_media": {
+                            "desc": "Продать журналистам за хорошие деньги",
+                            "rep_change": 5,
+                            "btc_bonus": 2000,
+                            "faction_impact": {"grayhats": 10}
+                        },
+                        "blackmail_officials": {
+                            "desc": "Шантажировать чиновников",
+                            "rep_change": -15,
+                            "btc_bonus": 5000,
+                            "heat_gain": 40,
+                            "faction_impact": {"blackhats": 25}
+                        },
+                        "anonymous_leak": {
+                            "desc": "Анонимно слить в интернет",
+                            "rep_change": 25,
+                            "btc_bonus": 0,
+                            "faction_impact": {"whitehats": 20},
+                            "special_reward": "whistleblower_protection"
+                        },
+                        "destroy_evidence": {
+                            "desc": "Уничтожить компромат",
+                            "rep_change": -5,
+                            "btc_bonus": 0,
+                            "heat_gain": -10,
+                            "special_consequence": "missed_opportunity"
+                        }
+                    }
+                }
+            }
+        ],
+        "time_limit": 24,
+        "random_events": [
+            {
+                "trigger": "stage_1_complete",
+                "chance": 0.3,
+                "event": "government_trace",
+                "desc": "Спецслужбы засекли ваши действия!",
+                "effects": {"heat_gain": 25, "time_pressure": True}
+            }
+        ],
+        "story_stage": 2
+    },
+
+    # Миссии с временными ограничениями
+    "zero_day_auction": {
+        "name": "Аукцион Zero-Day",
+        "desc": "У вас есть 6 часов чтобы найти и продать 0-day эксплойт",
+        "type": "time_critical",
+        "req_rep": 100,
+        "req_skills": {"cracking": 7, "scanning": 6},
+        "time_limit": 6,  # часов
+        "stages": [
+            {
+                "name": "Поиск уязвимости",
+                "desc": "Найдите неизвестную уязвимость",
+                "duration": 3,
+                "risk": 60,
+                "time_pressure_multiplier": 1.5
+            },
+            {
+                "name": "Создание эксплойта",
+                "desc": "Разработайте рабочий exploit",
+                "duration": 2,
+                "risk": 40
+            },
+            {
+                "name": "Продажа на аукционе",
+                "desc": "Продайте эксплойт на черном рынке",
+                "duration": 1,
+                "risk": 80,
+                "bidding_war": True
+            }
+        ],
+        "time_bonus": {"6h": 3000, "4h": 2000, "2h": 1000},
+        "time_penalty": {"overtime": -50},  # % от награды
+        "random_events": [
+            {
+                "trigger": "time_half",
+                "chance": 0.4,
+                "event": "competitor_found",
+                "desc": "Другой хакер тоже ищет эту уязвимость!",
+                "effects": {"competition": True, "risk_increase": 20}
+            }
+        ],
+        "story_stage": 3
+    }
 })
 
 # Добавляем новые типы событий для миссий
@@ -1515,7 +1514,7 @@ MARKET_ITEMS.update({
         "bonus": {"social_eng": 3, "faction_immunity": True},
         "unlock_condition": {"faction": "grayhats", "reputation": 60}
     },
-    
+
     # Предметы событий
     "emergency_kit": {
         "name": "Аварийный набор",
@@ -1537,7 +1536,7 @@ MARKET_ITEMS.update({
         "event_exclusive": True,
         "rarity": "legendary"
     },
-    
+
     # Легендарные предметы
     "gods_eye": {
         "name": "Око Бога",
@@ -1545,7 +1544,7 @@ MARKET_ITEMS.update({
         "type": "software",
         "desc": "Легендарная система наблюдения с глобальным доступом",
         "bonus": {"scanning": 10, "global_access": True},
-        "unlock_condition": {"reputation": 200, "completed_missions": 50},
+        "unlock_condition": {"faction": "grayhats", "reputation": 200},
         "rarity": "legendary",
         "unique": True
     },
@@ -1656,8 +1655,8 @@ ENDINGS.update({
         "title": "Кибер-мессия",
         "desc": "Вы стали спасителем цифрового мира, ваши действия изменили интернет к лучшему",
         "requirements": {
-            "faction": "whitehats", 
-            "reputation": 200, 
+            "faction": "whitehats",
+            "reputation": 200,
             "completed_missions": ["save_the_internet"]
         },
         "rarity": "legendary"
@@ -1666,8 +1665,8 @@ ENDINGS.update({
         "title": "Цифровой император",
         "desc": "Вы построили криминальную империю и контролируете весь даркнет",
         "requirements": {
-            "faction": "blackhats", 
-            "btc_balance": 100000, 
+            "faction": "blackhats",
+            "btc_balance": 100000,
             "completed_missions": ["conquer_darknet"]
         },
         "rarity": "legendary"
@@ -1676,8 +1675,8 @@ ENDINGS.update({
         "title": "Кукловод теней",
         "desc": "Вы стали невидимым кукловодом, управляющим событиями из тени",
         "requirements": {
-            "faction": "grayhats", 
-            "heat_level": 0, 
+            "faction": "grayhats",
+            "heat_level": 0,
             "skills": {"all": 10},
             "hidden_achievements": 10
         },
