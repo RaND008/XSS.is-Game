@@ -779,7 +779,7 @@ class CipherDecryptionGame(Minigame):
     def _show_crypto_lab_interface(self):
         """Показывает интерфейс криптографической лаборатории"""
         print(f"\n{XSSColors.HEADER}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
-        print(f"{XSSColors.HEADER}║              🔐 CRYPTANALYSIS LAB v4.1.2                    ║{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}║              🔐 CRYPTANALYSIS LAB v4.1.2                     ║{XSSColors.RESET}")
         print(f"{XSSColors.HEADER}║                  ВЗЛОМ ШИФРОВ И КОДОВ                        ║{XSSColors.RESET}")
         print(f"{XSSColors.HEADER}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
 
