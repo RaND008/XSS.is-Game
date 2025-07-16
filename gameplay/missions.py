@@ -607,6 +607,16 @@ class MissionSystem:
         game_state.set_stat("active_mission", None)
         game_state.set_stat("mission_progress", 0)
 
+        # Записываем провал в статистику
+        try:
+            from systems.event_system import mission_statistics
+            mission_statistics.record_mission_failure(
+                game_state.get_stat("active_mission"),
+                reason="detected"
+            )
+        except ImportError:
+            pass
+
         return False
 
     def _handle_mission_progress(self, mission_data: dict) -> bool:
@@ -673,6 +683,24 @@ class MissionSystem:
 
         # Отмечаем как выполненную
         game_state.complete_mission(mission_id)
+
+        # Записываем статистику миссии
+        try:
+            from systems.event_system import mission_statistics
+            duration = mission_data.get("duration", 1)
+            time_taken = duration * 0.5
+
+            rewards = {
+                "btc": btc_reward,
+                "reputation": rep_reward,
+                "skills": reward_skills
+            }
+
+            mission_statistics.record_mission_completion(
+                mission_id, mission_data, time_taken, rewards
+            )
+        except ImportError:
+            pass  # Если модуль недоступен
 
         # Сбрасываем активную миссию
         game_state.set_stat("active_mission", None)
