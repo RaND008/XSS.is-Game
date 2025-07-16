@@ -177,6 +177,9 @@ class XSSGame:
             # Инициализируем продвинутые системы миссий
             self.mission_event_manager = initialize_advanced_mission_systems(mission_system)
 
+            # Загружаем сохраненную статистику если есть
+            self._load_advanced_data()
+
             print(f"{XSSColors.SUCCESS}✅ Продвинутые системы миссий инициализированы{XSSColors.RESET}")
 
         except Exception as e:
