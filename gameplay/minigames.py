@@ -103,44 +103,585 @@ class PasswordCrackGame(Minigame):
 
 
 class FirewallBypassGame(Minigame):
-    """Упрощенная игра обхода файрвола"""
+    """Улучшенная мини-игра обхода файрвола с реалистичными техниками"""
 
     def __init__(self):
         super().__init__(
             "Обход файрвола",
-            "Угадайте код доступа",
+            "Используйте различные техники для обхода сетевой защиты",
             "stealth"
         )
 
     def play(self) -> bool:
         audio_system.play_sound("minigame_start")
-        print(f"\n{XSSColors.WARNING}━━━━━━━━━━ ОБХОД ФАЙРВОЛА ━━━━━━━━━━{XSSColors.RESET}")
-        print(f"{XSSColors.INFO}Введите число от 1 до 100{XSSColors.RESET}")
-        print(f"{XSSColors.INFO}Угадайте код доступа за 5 попыток{XSSColors.RESET}\n")
+        self._show_firewall_interface()
 
-        target = random.randint(1, 100)
-        attempts = 5
+        skill_level = game_state.get_skill(self.skill)
+        firewall_config = self._get_firewall_config(skill_level)
 
-        while attempts > 0:
-            try:
-                guess = int(input(f"{XSSColors.PROMPT}Попытка {6 - attempts}/5: {XSSColors.RESET}"))
+        # Генерируем конфигурацию файрвола
+        firewall_rules = self._generate_firewall_rules(firewall_config)
 
-                if guess == target:
-                    audio_system.play_sound("minigame_win")
-                    print(f"\n{XSSColors.SUCCESS}✅ УСПЕХ! Файрвол обойден!{XSSColors.RESET}")
-                    return True
-                elif guess < target:
-                    print(f"{XSSColors.WARNING}Слишком мало!{XSSColors.RESET}")
+        # Показываем информацию о цели
+        target_info = self._generate_target_info(firewall_config)
+        self._show_target_analysis(target_info, firewall_rules)
+
+        # Основной игровой процесс
+        return self._run_bypass_attempt(firewall_rules, target_info, firewall_config)
+
+    def _show_firewall_interface(self):
+        """Показывает интерфейс анализатора файрвола"""
+        print(f"\n{XSSColors.HEADER}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}║              🛡️  FIREWALL PENETRATION TOOLKIT v3.7           ║{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}║                    АНАЛИЗ СЕТЕВОЙ ЗАЩИТЫ                     ║{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.WARNING}🎯 ЗАДАЧА: Обойти файрвол и достичь целевого сервиса{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}🔍 Анализируйте правила, выберите технику обхода{XSSColors.RESET}")
+
+    def _get_firewall_config(self, skill_level):
+        """Конфигурация файрвола в зависимости от сложности"""
+        configs = {
+            'basic': {
+                'rules_count': 3,
+                'complexity': 'simple',
+                'deep_inspection': False,
+                'techniques_available': ['port_knocking', 'tunnel_http', 'fragment'],
+                'time_limit': None,
+                'hints_available': 2
+            },
+            'intermediate': {
+                'rules_count': 5,
+                'complexity': 'moderate',
+                'deep_inspection': True,
+                'techniques_available': ['port_knocking', 'tunnel_http', 'fragment', 'dns_tunnel', 'steganography'],
+                'time_limit': 180,
+                'hints_available': 1
+            },
+            'advanced': {
+                'rules_count': 7,
+                'complexity': 'complex',
+                'deep_inspection': True,
+                'techniques_available': ['port_knocking', 'tunnel_http', 'fragment', 'dns_tunnel', 'steganography',
+                                         'timing_attack'],
+                'time_limit': 120,
+                'hints_available': 1
+            },
+            'expert': {
+                'rules_count': 10,
+                'complexity': 'sophisticated',
+                'deep_inspection': True,
+                'techniques_available': ['port_knocking', 'tunnel_http', 'fragment', 'dns_tunnel', 'steganography',
+                                         'timing_attack', 'covert_channel'],
+                'time_limit': 90,
+                'hints_available': 0
+            }
+        }
+
+        if skill_level <= 2:
+            return configs['basic']
+        elif skill_level <= 5:
+            return configs['intermediate']
+        elif skill_level <= 7:
+            return configs['advanced']
+        else:
+            return configs['expert']
+
+    def _generate_firewall_rules(self, config):
+        """Генерирует правила файрвола"""
+        rules = []
+        rule_types = [
+            {'type': 'port_block', 'ports': [22, 23, 80, 443, 3389], 'description': 'Блокировка стандартных портов'},
+            {'type': 'ip_whitelist', 'ips': ['192.168.1.0/24', '10.0.0.0/8'], 'description': 'Разрешенные IP сети'},
+            {'type': 'protocol_filter', 'protocols': ['TCP', 'UDP', 'ICMP'], 'description': 'Фильтрация протоколов'},
+            {'type': 'content_filter', 'keywords': ['hack', 'exploit', 'payload'],
+             'description': 'Фильтрация содержимого'},
+            {'type': 'rate_limit', 'limit': '100 req/min', 'description': 'Ограничение скорости'},
+            {'type': 'geo_block', 'countries': ['CN', 'RU', 'KP'], 'description': 'Географическая блокировка'},
+            {'type': 'time_restriction', 'hours': '09:00-17:00', 'description': 'Временные ограничения'},
+            {'type': 'signature_detection', 'signatures': ['Nmap', 'Metasploit'],
+             'description': 'Обнаружение сигнатур'},
+            {'type': 'ssl_inspection', 'enabled': True, 'description': 'Инспекция SSL трафика'},
+            {'type': 'anomaly_detection', 'threshold': 'medium', 'description': 'Обнаружение аномалий'}
+        ]
+
+        # Выбираем случайные правила
+        selected_rules = random.sample(rule_types, min(len(rule_types), config['rules_count']))
+
+        for i, rule in enumerate(selected_rules, 1):
+            rules.append({
+                'id': i,
+                'type': rule['type'],
+                'details': rule,
+                'bypass_difficulty': random.randint(1, 5),
+                'effective_techniques': self._get_effective_techniques(rule['type'])
+            })
+
+        return rules
+
+    def _get_effective_techniques(self, rule_type):
+        """Возвращает эффективные техники для обхода конкретного правила"""
+        technique_map = {
+            'port_block': ['port_knocking', 'tunnel_http', 'dns_tunnel'],
+            'ip_whitelist': ['tunnel_http', 'dns_tunnel', 'covert_channel'],
+            'protocol_filter': ['fragment', 'steganography', 'covert_channel'],
+            'content_filter': ['steganography', 'fragment', 'tunnel_http'],
+            'rate_limit': ['timing_attack', 'fragment', 'covert_channel'],
+            'geo_block': ['tunnel_http', 'dns_tunnel', 'covert_channel'],
+            'time_restriction': ['timing_attack', 'covert_channel'],
+            'signature_detection': ['steganography', 'fragment', 'covert_channel'],
+            'ssl_inspection': ['dns_tunnel', 'covert_channel', 'steganography'],
+            'anomaly_detection': ['timing_attack', 'steganography', 'covert_channel']
+        }
+        return technique_map.get(rule_type, ['tunnel_http'])
+
+    def _generate_target_info(self, config):
+        """Генерирует информацию о цели"""
+        targets = [
+            {
+                'name': 'Web Server',
+                'ip': '10.0.1.100',
+                'port': 80,
+                'service': 'Apache/2.4.41',
+                'vulnerability': 'Outdated version'
+            },
+            {
+                'name': 'Database Server',
+                'ip': '10.0.1.200',
+                'port': 3306,
+                'service': 'MySQL 5.7',
+                'vulnerability': 'Weak authentication'
+            },
+            {
+                'name': 'SSH Server',
+                'ip': '10.0.1.50',
+                'port': 22,
+                'service': 'OpenSSH 7.4',
+                'vulnerability': 'Default credentials'
+            },
+            {
+                'name': 'FTP Server',
+                'ip': '10.0.1.150',
+                'port': 21,
+                'service': 'vsftpd 3.0.3',
+                'vulnerability': 'Anonymous access'
+            }
+        ]
+
+        return random.choice(targets)
+
+    def _show_target_analysis(self, target_info, firewall_rules):
+        """Показывает анализ цели и правил файрвола"""
+        print(f"\n{XSSColors.WARNING}🎯 ЦЕЛЬ АТАКИ:{XSSColors.RESET}")
+        print(f"   Сервис: {XSSColors.BRIGHT_GREEN}{target_info['name']}{XSSColors.RESET}")
+        print(f"   IP: {target_info['ip']}")
+        print(f"   Порт: {target_info['port']}")
+        print(f"   Версия: {target_info['service']}")
+        print(f"   Уязвимость: {XSSColors.ERROR}{target_info['vulnerability']}{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.ERROR}🛡️ ОБНАРУЖЕННЫЕ ПРАВИЛА ФАЙРВОЛА:{XSSColors.RESET}")
+        for rule in firewall_rules:
+            difficulty_color = self._get_difficulty_color(rule['bypass_difficulty'])
+            print(f"   {rule['id']}. {rule['details']['description']}")
+            print(f"      Тип: {rule['type']}")
+            print(f"      Сложность обхода: {difficulty_color}{rule['bypass_difficulty']}/5{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.SUCCESS}🔧 ДОСТУПНЫЕ ТЕХНИКИ ОБХОДА:{XSSColors.RESET}")
+
+    def _run_bypass_attempt(self, firewall_rules, target_info, config):
+        """Основной процесс обхода файрвола"""
+        techniques_used = []
+        rules_bypassed = []
+        hints_used = 0
+        start_time = time.time()
+
+        # Показываем доступные техники
+        available_techniques = config['techniques_available']
+        for i, technique in enumerate(available_techniques, 1):
+            technique_name = self._get_technique_display_name(technique)
+            print(f"   {XSSColors.BRIGHT_GREEN}{i}.{XSSColors.RESET} {technique_name}")
+
+        print(f"\n{XSSColors.INFO}📋 КОМАНДЫ:{XSSColors.RESET}")
+        print(f"   {XSSColors.BRIGHT_GREEN}use <technique_id> <rule_id>{XSSColors.RESET} - Применить технику к правилу")
+        print(f"   {XSSColors.BRIGHT_GREEN}analyze <rule_id>{XSSColors.RESET} - Анализировать правило")
+        print(f"   {XSSColors.BRIGHT_GREEN}status{XSSColors.RESET} - Показать статус обхода")
+        print(f"   {XSSColors.BRIGHT_GREEN}hint{XSSColors.RESET} - Получить подсказку")
+        print(f"   {XSSColors.BRIGHT_GREEN}attack{XSSColors.RESET} - Попытаться атаковать цель")
+        print(f"   {XSSColors.BRIGHT_GREEN}help{XSSColors.RESET} - Показать справку с примерами")
+
+        print(f"\n{XSSColors.WARNING}💡 ПРИМЕР ИСПОЛЬЗОВАНИЯ:{XSSColors.RESET}")
+        print(f"   {XSSColors.LIGHT_GRAY}use 1 2{XSSColors.RESET} - Применить технику #1 к правилу #2")
+        print(f"   {XSSColors.LIGHT_GRAY}analyze 3{XSSColors.RESET} - Анализировать правило #3")
+
+        while len(rules_bypassed) < len(firewall_rules):
+            # Проверяем временное ограничение
+            if config['time_limit']:
+                elapsed = time.time() - start_time
+                remaining = config['time_limit'] - elapsed
+                if remaining <= 0:
+                    print(f"\n{XSSColors.ERROR}⏰ ВРЕМЯ ВЫШЛО! Файрвол обнаружил вторжение!{XSSColors.RESET}")
+                    return False
+                elif remaining <= 30:
+                    print(f"{XSSColors.WARNING}⚠️ Осталось {remaining:.0f} секунд!{XSSColors.RESET}")
+
+            # Показываем статус
+            self._show_bypass_status(rules_bypassed, len(firewall_rules), techniques_used)
+
+            # Получаем команду
+            command = audio_system.get_input_with_sound(
+                f"{XSSColors.PROMPT}[Bypass]> {XSSColors.RESET}").strip().lower()
+
+            if not command:
+                continue
+
+            parts = command.split()
+            cmd = parts[0]
+
+            if cmd == "use" and len(parts) >= 3:
+                try:
+                    technique_id = int(parts[1])
+                    rule_id = int(parts[2])
+
+                    # Проверяем валидность ID техники
+                    if not (1 <= technique_id <= len(available_techniques)):
+                        print(
+                            f"{XSSColors.ERROR}Неверный ID техники. Доступно: 1-{len(available_techniques)}{XSSColors.RESET}")
+                        continue
+
+                    # Получаем технику по ID
+                    technique = available_techniques[technique_id - 1]
+
+                    result = self._attempt_bypass(technique, rule_id, firewall_rules, available_techniques)
+                    if result['success']:
+                        if rule_id not in rules_bypassed:
+                            rules_bypassed.append(rule_id)
+                        if technique not in techniques_used:
+                            techniques_used.append(technique)
+                        print(f"{XSSColors.SUCCESS}✅ {result['message']}{XSSColors.RESET}")
+                    else:
+                        print(f"{XSSColors.ERROR}❌ {result['message']}{XSSColors.RESET}")
+                        if result.get('detected', False):
+                            print(
+                                f"{XSSColors.DANGER}🚨 ОБНАРУЖЕНИЕ! Файрвол зафиксировал подозрительную активность!{XSSColors.RESET}")
+                            return False
+                except ValueError:
+                    print(
+                        f"{XSSColors.ERROR}Неверный формат. Используйте: use <technique_id> <rule_id>{XSSColors.RESET}")
+                    print(f"{XSSColors.INFO}Пример: use 1 2 (применить технику #1 к правилу #2){XSSColors.RESET}")
+
+            elif cmd == "analyze" and len(parts) > 1:
+                try:
+                    rule_id = int(parts[1])
+                    self._analyze_rule(rule_id, firewall_rules)
+                except ValueError:
+                    print(f"{XSSColors.ERROR}Неверный ID правила{XSSColors.RESET}")
+
+            elif cmd == "status":
+                self._show_detailed_status(firewall_rules, rules_bypassed, techniques_used)
+
+            elif cmd == "hint":
+                if hints_used < config['hints_available']:
+                    self._give_bypass_hint(firewall_rules, rules_bypassed, hints_used)
+                    hints_used += 1
                 else:
-                    print(f"{XSSColors.WARNING}Слишком много!{XSSColors.RESET}")
+                    print(f"{XSSColors.WARNING}Подсказки исчерпаны{XSSColors.RESET}")
 
-                attempts -= 1
-            except ValueError:
-                print(f"{XSSColors.ERROR}Введите число!{XSSColors.RESET}")
+            elif cmd == "attack":
+                if len(rules_bypassed) == len(firewall_rules):
+                    return self._attempt_final_attack(target_info, time.time() - start_time, techniques_used)
+                else:
+                    remaining_rules = len(firewall_rules) - len(rules_bypassed)
+                    print(
+                        f"{XSSColors.WARNING}Файрвол все еще активен! Осталось обойти правил: {remaining_rules}{XSSColors.RESET}")
 
+            elif cmd == "help":
+                self._show_bypass_help()
+
+            else:
+                print(f"{XSSColors.ERROR}Неизвестная команда. Используйте 'help' для справки{XSSColors.RESET}")
+
+        # Если все правила обойдены
+        print(f"\n{XSSColors.SUCCESS}🎉 ВСЕ ПРАВИЛА ФАЙРВОЛА ОБОЙДЕНЫ!{XSSColors.RESET}")
+        return self._attempt_final_attack(target_info, time.time() - start_time, techniques_used)
+
+    def _attempt_bypass(self, technique, rule_id, firewall_rules, available_techniques):
+        """Попытка обхода конкретного правила"""
+        if technique not in available_techniques:
+            return {'success': False, 'message': 'Техника недоступна'}
+
+        # Находим правило
+        rule = next((r for r in firewall_rules if r['id'] == rule_id), None)
+        if not rule:
+            return {'success': False, 'message': 'Правило не найдено'}
+
+        # Проверяем эффективность техники
+        effective_techniques = rule['effective_techniques']
+        is_effective = technique in effective_techniques
+
+        # Рассчитываем шанс успеха
+        base_chance = 0.8 if is_effective else 0.3
+        difficulty_penalty = rule['bypass_difficulty'] * 0.1
+        skill_bonus = game_state.get_skill(self.skill) * 0.05
+
+        success_chance = base_chance - difficulty_penalty + skill_bonus
+        success_chance = max(0.1, min(0.95, success_chance))
+
+        # Шанс обнаружения
+        detection_chance = (1 - success_chance) * 0.5 if not is_effective else 0.1
+
+        if random.random() < success_chance:
+            technique_name = self._get_technique_display_name(technique)
+            return {
+                'success': True,
+                'message': f'Правило #{rule_id} обойдено с помощью {technique_name}'
+            }
+        elif random.random() < detection_chance:
+            return {
+                'success': False,
+                'message': 'Попытка обхода обнаружена файрволом',
+                'detected': True
+            }
+        else:
+            return {
+                'success': False,
+                'message': 'Техника оказалась неэффективной против этого правила'
+            }
+
+    def _analyze_rule(self, rule_id, firewall_rules):
+        """Анализирует конкретное правило файрвола"""
+        rule = next((r for r in firewall_rules if r['id'] == rule_id), None)
+        if not rule:
+            print(f"{XSSColors.ERROR}Правило {rule_id} не найдено{XSSColors.RESET}")
+            return
+
+        print(f"\n{XSSColors.INFO}🔍 АНАЛИЗ ПРАВИЛА #{rule_id}:{XSSColors.RESET}")
+        print(f"   Тип: {rule['type']}")
+        print(f"   Описание: {rule['details']['description']}")
+        print(
+            f"   Сложность: {self._get_difficulty_color(rule['bypass_difficulty'])}{rule['bypass_difficulty']}/5{XSSColors.RESET}")
+
+        # Показываем детали правила
+        details = rule['details']
+        if 'ports' in details:
+            print(f"   Заблокированные порты: {', '.join(map(str, details['ports']))}")
+        if 'ips' in details:
+            print(f"   Разрешенные IP: {', '.join(details['ips'])}")
+        if 'protocols' in details:
+            print(f"   Фильтруемые протоколы: {', '.join(details['protocols'])}")
+        if 'keywords' in details:
+            print(f"   Запрещенные слова: {', '.join(details['keywords'])}")
+
+        # Рекомендуемые техники
+        effective_techniques = rule['effective_techniques']
+        technique_names = [self._get_technique_display_name(t) for t in effective_techniques]
+        print(f"   {XSSColors.SUCCESS}Эффективные техники: {', '.join(technique_names)}{XSSColors.RESET}")
+
+    def _show_bypass_status(self, rules_bypassed, total_rules, techniques_used):
+        """Показывает статус обхода"""
+        progress = f"{len(rules_bypassed)}/{total_rules}"
+        progress_color = XSSColors.SUCCESS if len(rules_bypassed) == total_rules else XSSColors.WARNING
+
+        print(f"\n{XSSColors.INFO}📊 Прогресс: {progress_color}{progress}{XSSColors.RESET} правил обойдено")
+        if techniques_used:
+            print(
+                f"   Использованные техники: {', '.join([self._get_technique_display_name(t) for t in techniques_used])}")
+
+    def _show_detailed_status(self, firewall_rules, rules_bypassed, techniques_used):
+        """Показывает детальный статус обхода"""
+        print(f"\n{XSSColors.HEADER}━━━━━━━━━━━━━━━━ СТАТУС ОБХОДА ━━━━━━━━━━━━━━━━{XSSColors.RESET}")
+
+        for rule in firewall_rules:
+            status = "✅ ОБОЙДЕНО" if rule['id'] in rules_bypassed else "🛡️ АКТИВНО"
+            status_color = XSSColors.SUCCESS if rule['id'] in rules_bypassed else XSSColors.ERROR
+            print(
+                f"   Правило {rule['id']}: {status_color}{status}{XSSColors.RESET} - {rule['details']['description']}")
+
+        if techniques_used:
+            print(f"\n{XSSColors.INFO}🔧 Использованные техники:{XSSColors.RESET}")
+            for technique in techniques_used:
+                print(f"   • {self._get_technique_display_name(technique)}")
+
+    def _give_bypass_hint(self, firewall_rules, rules_bypassed, hint_number):
+        """Дает подсказку для обхода"""
+        remaining_rules = [r for r in firewall_rules if r['id'] not in rules_bypassed]
+
+        if not remaining_rules:
+            print(f"{XSSColors.INFO}💡 Все правила обойдены! Используйте 'attack' для атаки на цель{XSSColors.RESET}")
+            return
+
+        if hint_number == 0:
+            # Первая подсказка - о самом слабом правиле
+            easiest_rule = min(remaining_rules, key=lambda r: r['bypass_difficulty'])
+            print(
+                f"\n{XSSColors.INFO}💡 ПОДСКАЗКА: Самое слабое правило - #{easiest_rule['id']} ({easiest_rule['details']['description']}){XSSColors.RESET}")
+        else:
+            # Вторая подсказка - о рекомендуемой технике
+            random_rule = random.choice(remaining_rules)
+            recommended_technique = random.choice(random_rule['effective_techniques'])
+            technique_name = self._get_technique_display_name(recommended_technique)
+            print(
+                f"\n{XSSColors.INFO}💡 ПОДСКАЗКА: Попробуйте {technique_name} против правила #{random_rule['id']}{XSSColors.RESET}")
+
+    def _attempt_final_attack(self, target_info, time_taken, techniques_used):
+        """Попытка финальной атаки на цель"""
+        print(f"\n{XSSColors.SUCCESS}🚀 ЗАПУСК АТАКИ НА ЦЕЛЬ...{XSSColors.RESET}")
+        time.sleep(2)
+
+        # Рассчитываем шанс успеха атаки
+        base_success = 0.7
+        technique_bonus = len(techniques_used) * 0.05
+        time_bonus = max(0, (180 - time_taken) / 180 * 0.2)
+        skill_bonus = game_state.get_skill(self.skill) * 0.03
+
+        attack_success = base_success + technique_bonus + time_bonus + skill_bonus
+        attack_success = min(0.95, attack_success)
+
+        if random.random() < attack_success:
+            self._show_attack_success(target_info, time_taken, techniques_used)
+            return True
+        else:
+            self._show_attack_failure(target_info, time_taken)
+            return False
+
+    def _show_attack_success(self, target_info, time_taken, techniques_used):
+        """Показывает экран успешной атаки"""
+        audio_system.play_sound("minigame_win")
+
+        print(f"\n{XSSColors.SUCCESS}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.SUCCESS}                🎉 ФАЙРВОЛ УСПЕШНО ОБОЙДЕН! 🎉                {XSSColors.RESET}")
+        print(f"{XSSColors.SUCCESS}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.SUCCESS}🎯 Цель достигнута: {target_info['name']}{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}📡 Подключение установлено к {target_info['ip']}:{target_info['port']}{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}⏱️ Время обхода: {time_taken:.1f} секунд{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.WARNING}🔧 ИСПОЛЬЗОВАННЫЕ ТЕХНИКИ:{XSSColors.RESET}")
+        for technique in techniques_used:
+            print(f"   ✓ {self._get_technique_display_name(technique)}")
+
+        # Показываем найденную уязвимость
+        print(f"\n{XSSColors.ERROR}🔓 ОБНАРУЖЕНА УЯЗВИМОСТЬ:{XSSColors.RESET}")
+        print(f"   {target_info['vulnerability']}")
+
+        # Оценка производительности
+        if time_taken < 60:
+            rating = f"{XSSColors.SUCCESS}🌟 МОЛНИЕНОСНО!{XSSColors.RESET}"
+        elif time_taken < 120:
+            rating = f"{XSSColors.WARNING}💪 ОТЛИЧНО!{XSSColors.RESET}"
+        else:
+            rating = f"{XSSColors.INFO}👍 ХОРОШО!{XSSColors.RESET}"
+
+        print(f"\n🏆 Оценка: {rating}")
+        print(f"\n{XSSColors.SUCCESS}✅ Файрвол обойден! Доступ к внутренней сети получен.{XSSColors.RESET}")
+
+    def _show_attack_failure(self, target_info, time_taken):
+        """Показывает экран неудачной атаки"""
         audio_system.play_sound("minigame_lose")
-        print(f"\n{XSSColors.ERROR}❌ Провал! Код был: {target}{XSSColors.RESET}")
-        return False
+
+        print(f"\n{XSSColors.ERROR}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.ERROR}                    ❌ АТАКА НЕУДАЧНА ❌                     {XSSColors.RESET}")
+        print(f"{XSSColors.ERROR}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.ERROR}🛡️ Последний рубеж защиты устоял{XSSColors.RESET}")
+        print(f"{XSSColors.WARNING}📡 Соединение с {target_info['ip']} заблокировано{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}⏱️ Время попытки: {time_taken:.1f} секунд{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.WARNING}💡 ВОЗМОЖНЫЕ ПРИЧИНЫ НЕУДАЧИ:{XSSColors.RESET}")
+        print(f"   • Дополнительные меры защиты на целевом сервере")
+        print(f"   • Система обнаружения вторжений (IDS)")
+        print(f"   • Неожиданные изменения в конфигурации")
+        print(f"   • Требуются дополнительные техники обхода")
+
+        print(f"\n{XSSColors.INFO}🎯 Попробуйте использовать другие техники в следующий раз{XSSColors.RESET}")
+
+    def _show_bypass_help(self):
+        """Показывает справку по обходу файрвола"""
+        print(f"\n{XSSColors.INFO}📖 СПРАВКА ПО ОБХОДУ ФАЙРВОЛА:{XSSColors.RESET}")
+        print(f"   {XSSColors.BRIGHT_GREEN}use <technique_id> <rule_id>{XSSColors.RESET} - Применить технику к правилу")
+        print(f"   {XSSColors.BRIGHT_GREEN}analyze <rule_id>{XSSColors.RESET} - Детальный анализ правила")
+        print(f"   {XSSColors.BRIGHT_GREEN}status{XSSColors.RESET} - Показать прогресс обхода")
+        print(f"   {XSSColors.BRIGHT_GREEN}attack{XSSColors.RESET} - Атаковать цель (после обхода всех правил)")
+        print(f"   {XSSColors.BRIGHT_GREEN}hint{XSSColors.RESET} - Получить подсказку")
+
+        print(f"\n{XSSColors.WARNING}💡 ПРИМЕРЫ КОМАНД:{XSSColors.RESET}")
+        print(f"   {XSSColors.LIGHT_GRAY}use 1 2{XSSColors.RESET} - Применить технику #1 к правилу #2")
+        print(f"   {XSSColors.LIGHT_GRAY}use 3 1{XSSColors.RESET} - Применить технику #3 к правилу #1")
+        print(f"   {XSSColors.LIGHT_GRAY}analyze 1{XSSColors.RESET} - Анализировать правило #1")
+        print(f"   {XSSColors.LIGHT_GRAY}status{XSSColors.RESET} - Посмотреть прогресс")
+
+        print(f"\n{XSSColors.WARNING}🔧 ТЕХНИКИ ОБХОДА:{XSSColors.RESET}")
+        techniques = {
+            '1. 🚪 Port Knocking': 'Секретная последовательность для открытия портов',
+            '2. 🌐 HTTP Tunneling': 'Туннелирование через HTTP/HTTPS трафик',
+            '3. 🧩 Packet Fragmentation': 'Фрагментация пакетов для обхода фильтров',
+            '4. 📡 DNS Tunneling': 'Туннелирование через DNS запросы',
+            '5. 🎭 Steganography': 'Сокрытие данных в легитимном трафике',
+            '6. ⏰ Timing Attack': 'Атака на основе временных интервалов',
+            '7. 🕵️ Covert Channel': 'Использование скрытых каналов связи'
+        }
+
+        for tech, desc in techniques.items():
+            print(f"   • {tech}: {desc}")
+
+        print(f"\n{XSSColors.SUCCESS}🎯 СТРАТЕГИЯ:{XSSColors.RESET}")
+        print(f"   1. Используйте {XSSColors.BRIGHT_GREEN}analyze{XSSColors.RESET} для изучения правил")
+        print(f"   2. Выберите эффективные техники из рекомендаций")
+        print(f"   3. Применяйте техники командой {XSSColors.BRIGHT_GREEN}use{XSSColors.RESET}")
+        print(f"   4. После обхода всех правил используйте {XSSColors.BRIGHT_GREEN}attack{XSSColors.RESET}")
+
+    # Вспомогательные методы
+
+    def _get_technique_display_name(self, technique):
+        """Возвращает отображаемое имя техники"""
+        names = {
+            'port_knocking': '🚪 Port Knocking',
+            'tunnel_http': '🌐 HTTP Tunneling',
+            'fragment': '🧩 Packet Fragmentation',
+            'dns_tunnel': '📡 DNS Tunneling',
+            'steganography': '🎭 Steganography',
+            'timing_attack': '⏰ Timing Attack',
+            'covert_channel': '🕵️ Covert Channel'
+        }
+        return names.get(technique, technique.title())
+
+    def _get_difficulty_color(self, difficulty):
+        """Возвращает цвет для уровня сложности"""
+        if difficulty <= 2:
+            return XSSColors.SUCCESS
+        elif difficulty <= 3:
+            return XSSColors.WARNING
+        else:
+            return XSSColors.ERROR
+
+    def get_difficulty(self) -> int:
+        """Возвращает сложность в зависимости от навыка игрока"""
+        skill_level = game_state.get_skill(self.skill)
+        return min(4 + skill_level // 2, 8)
+
+    def get_reputation_reward(self) -> int:
+        """Рассчитывает награду репутации для этой мини-игры"""
+        skill_level = game_state.get_skill(self.skill)
+        difficulty = self.get_difficulty()
+
+        base_rep = 3  # Увеличена базовая репутация для более сложной игры
+        difficulty_bonus = difficulty // 2
+        skill_bonus = 2 if skill_level >= 7 else 0
+
+        return base_rep + difficulty_bonus + skill_bonus
+
+    def show_potential_rewards(self) -> None:
+        """Показывает потенциальные награды перед началом игры"""
+        skill_level = game_state.get_skill(self.skill)
+        rep_reward = self.get_reputation_reward()
+
+        print(f"\n{XSSColors.INFO}🏆 ПОТЕНЦИАЛЬНЫЕ НАГРАДЫ:{XSSColors.RESET}")
+        print(f"   💰 BTC: 8-25")
+        print(f"   ⭐ Репутация: {rep_reward}")
+        print(f"   📊 Сложность: {self.get_difficulty()}/8")
+        print(f"   🎯 Тип навыка: Stealth (Скрытность)")
+
+        if skill_level >= 8:
+            print(f"   ✨ Экспертный бонус: Дополнительные техники обхода")
 
 
 class MemorySequenceGame(Minigame):
@@ -3466,86 +4007,903 @@ class MalwareAnalysisGame(Minigame):
 
 
 class HoneypotAvoidanceGame(Minigame):
-    """Мини-игра "Избегание 'медовых ловушек'"."""
+    """Улучшенная мини-игра избегания honeypot'ов с реалистичной сетевой разведкой"""
+
     def __init__(self):
         super().__init__(
-            "Избегание 'медовых ловушек'",
-            "Выберите безопасный маршрут через сеть, избегая honeypot'ов",
+            "Избегание медовых ловушек",
+            "Проведите разведку сети и избежите honeypot'ов на пути к цели",
             "stealth"
         )
 
     def play(self) -> bool:
         audio_system.play_sound("minigame_start")
-        print(f"\n{XSSColors.WARNING}━━━━━━━━━━ ИЗБЕГАНИЕ 'МЕДОВЫХ ЛОВУШЕК' ━━━━━━━━━━{XSSColors.RESET}")
+        self._show_reconnaissance_interface()
+
         skill_level = game_state.get_skill(self.skill)
-        num_nodes = 5 + skill_level // 2
+        network_config = self._get_network_config(skill_level)
 
-        nodes = ['[SAFE]' for _ in range(num_nodes)]
-        num_honeypots = max(1, num_nodes // 3 - skill_level // 4) # Чем выше навык, тем меньше ловушек
+        # Генерируем сетевую топологию
+        network_map = self._generate_network_topology(network_config)
 
-        honeypot_indices = random.sample(range(num_nodes), num_honeypots)
-        for idx in honeypot_indices:
-            nodes[idx] = f"{XSSColors.DANGER}[HONEYPOT]{XSSColors.RESET}"
+        # Показываем начальную разведку
+        self._show_initial_scan(network_map, network_config)
 
-        # Гарантируем, что есть хотя бы один безопасный путь
-        if 0 in honeypot_indices: # Начальная точка не может быть ловушкой
-            nodes[0] = '[SAFE]'
-            if len(honeypot_indices) > 1:
-                honeypot_indices.remove(0)
+        # Основной игровой процесс
+        return self._run_network_infiltration(network_map, network_config)
 
-        print(f"{XSSColors.INFO}Ваша цель - пройти от начала (Start) до конца (End), не попав в [HONEYPOT].{XSSColors.RESET}")
-        print(f"{XSSColors.INFO}Введите индексы узлов через пробел (начиная с 0): 0 1 2 ...{XSSColors.RESET}\n")
+    def _show_reconnaissance_interface(self):
+        """Показывает интерфейс разведки сети"""
+        print(f"\n{XSSColors.HEADER}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}║              🕵️  NETWORK RECONNAISSANCE SUITE v4.2           ║{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}║                    HONEYPOT DETECTION SYSTEM                 ║{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
 
-        display_nodes = [f"[{i}]{node}" for i, node in enumerate(nodes)]
-        print(f"Путь: [Start] -- {' -- '.join(display_nodes)} -- [End]")
+        print(f"\n{XSSColors.WARNING}🎯 МИССИЯ: Проникнуть в целевую сеть, избегая honeypot'ов{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}🔍 Используйте инструменты разведки для обнаружения ловушек{XSSColors.RESET}")
 
-        attempts = 2
-        while attempts > 0:
-            user_path_str = audio_system.get_input_with_sound(f"{XSSColors.PROMPT}Ваш маршрут (индексы): {XSSColors.RESET}")
+    def _get_network_config(self, skill_level):
+        """Конфигурация сети в зависимости от сложности"""
+        configs = {
+            'beginner': {
+                'network_size': (4, 4),  # 4x4 сетка
+                'honeypot_count': 2,
+                'decoy_services': 1,
+                'scan_tools': ['ping', 'port_scan', 'banner_grab'],
+                'time_limit': None,
+                'detection_difficulty': 'easy',
+                'false_positives': 0
+            },
+            'intermediate': {
+                'network_size': (5, 5),  # 5x5 сетка
+                'honeypot_count': 3,
+                'decoy_services': 2,
+                'scan_tools': ['ping', 'port_scan', 'banner_grab', 'os_detect'],
+                'time_limit': 240,  # 4 минуты
+                'detection_difficulty': 'medium',
+                'false_positives': 1
+            },
+            'advanced': {
+                'network_size': (6, 6),  # 6x6 сетка
+                'honeypot_count': 5,
+                'decoy_services': 3,
+                'scan_tools': ['ping', 'port_scan', 'banner_grab', 'os_detect', 'vuln_scan'],
+                'time_limit': 180,  # 3 минуты
+                'detection_difficulty': 'hard',
+                'false_positives': 2
+            },
+            'expert': {
+                'network_size': (7, 7),  # 7x7 сетка
+                'honeypot_count': 8,
+                'decoy_services': 5,
+                'scan_tools': ['ping', 'port_scan', 'banner_grab', 'os_detect', 'vuln_scan', 'traffic_analysis'],
+                'time_limit': 120,  # 2 минуты
+                'detection_difficulty': 'extreme',
+                'false_positives': 3
+            }
+        }
 
-            try:
-                user_path_indices = [int(x) for x in user_path_str.split()]
+        if skill_level <= 2:
+            return configs['beginner']
+        elif skill_level <= 5:
+            return configs['intermediate']
+        elif skill_level <= 7:
+            return configs['advanced']
+        else:
+            return configs['expert']
 
-                if not user_path_indices:
-                    print(f"{XSSColors.ERROR}Введите хоть какие-то индексы.{XSSColors.RESET}")
-                    attempts -= 1
-                    continue
+    def _generate_network_topology(self, config):
+        """Генерирует топологию сети с хостами и honeypot'ами"""
+        rows, cols = config['network_size']
+        network = {}
 
-                if user_path_indices[0] != 0:
-                    print(f"{XSSColors.ERROR}Маршрут должен начинаться с узла 0.{XSSColors.RESET}")
-                    attempts -= 1
-                    continue
-                if user_path_indices[-1] != num_nodes - 1:
-                    print(f"{XSSColors.ERROR}Маршрут должен заканчиваться узлом {num_nodes - 1}.{XSSColors.RESET}")
-                    attempts -= 1
-                    continue
+        # Создаем все узлы сети
+        for row in range(rows):
+            for col in range(cols):
+                node_id = f"{row}-{col}"
+                network[node_id] = {
+                    'position': (row, col),
+                    'ip': f"192.168.{row}.{col + 10}",
+                    'type': 'unknown',
+                    'scanned': False,
+                    'services': [],
+                    'os': None,
+                    'vulnerabilities': [],
+                    'honeypot_indicators': [],
+                    'suspicion_level': 0
+                }
 
-                is_safe = True
-                for idx in user_path_indices:
-                    if not (0 <= idx < num_nodes):
-                        print(f"{XSSColors.ERROR}Узел {idx} не существует. Индексы от 0 до {num_nodes - 1}.{XSSColors.RESET}")
-                        is_safe = False
-                        break
-                    if idx in honeypot_indices:
-                        print(f"{XSSColors.ERROR}Вы попали в honeypot на узле {idx}!{XSSColors.RESET}")
-                        is_safe = False
-                        break
+        # Определяем точки входа и цель
+        entry_point = "0-0"
+        target = f"{rows - 1}-{cols - 1}"
 
-                if is_safe:
-                    audio_system.play_sound("minigame_win")
-                    print(f"\n{XSSColors.SUCCESS}🎉 УСПЕХ! Вы успешно избежали все ловушки!{XSSColors.RESET}")
-                    return True
+        network[entry_point]['type'] = 'entry'
+        network[target]['type'] = 'target'
+
+        # Размещаем honeypot'ы
+        possible_positions = [k for k in network.keys() if k not in [entry_point, target]]
+        honeypot_positions = random.sample(possible_positions, config['honeypot_count'])
+
+        for pos in honeypot_positions:
+            network[pos]['type'] = 'honeypot'
+            self._configure_honeypot(network[pos], config['detection_difficulty'])
+
+        # Размещаем обычные хосты
+        remaining_positions = [k for k in possible_positions if k not in honeypot_positions]
+        for pos in remaining_positions:
+            network[pos]['type'] = 'legitimate'
+            self._configure_legitimate_host(network[pos])
+
+        # Настраиваем цель
+        self._configure_target(network[target])
+
+        # Добавляем ложные срабатывания
+        self._add_false_positives(network, config['false_positives'])
+
+        return {
+            'nodes': network,
+            'entry': entry_point,
+            'target': target,
+            'rows': rows,
+            'cols': cols
+        }
+
+    def _configure_honeypot(self, node, difficulty):
+        """Настраивает honeypot с различными уровнями маскировки"""
+        honeypot_types = {
+            'easy': {
+                'services': [22, 80, 443],  # Стандартные порты
+                'os': 'Linux 2.6.32 (fake)',
+                'vulnerabilities': ['CVE-2020-1234 (fake)', 'Weak SSH'],
+                'indicators': ['Too many open ports', 'Suspicious banner', 'Perfect vulnerability']
+            },
+            'medium': {
+                'services': [22, 80, 443, 3306, 21],
+                'os': 'Linux 4.15.0-generic',
+                'vulnerabilities': ['Outdated OpenSSL', 'MySQL default creds'],
+                'indicators': ['Honeypot signature in banner', 'Unusual response time']
+            },
+            'hard': {
+                'services': [22, 80, 443, 3306, 21, 25, 110],
+                'os': 'Ubuntu 18.04.3 LTS',
+                'vulnerabilities': ['Apache 2.4.29 RCE', 'SSH bruteforce vulnerable'],
+                'indicators': ['Kippo SSH signature', 'Too eager responses']
+            },
+            'extreme': {
+                'services': [22, 80, 443, 3306, 21, 25, 110, 143, 993],
+                'os': 'Ubuntu 20.04.1 LTS',
+                'vulnerabilities': ['Zero-day available', 'Multiple RCE vulns'],
+                'indicators': ['Subtle timing anomalies', 'Honeypot filesystem artifacts']
+            }
+        }
+
+        config = honeypot_types[difficulty]
+        node['services'] = config['services']
+        node['os'] = config['os']
+        node['vulnerabilities'] = config['vulnerabilities']
+        node['honeypot_indicators'] = config['indicators']
+
+        # Уровень подозрительности зависит от сложности
+        suspicion_map = {'easy': 8, 'medium': 6, 'hard': 4, 'extreme': 2}
+        node['suspicion_level'] = suspicion_map[difficulty]
+
+    def _configure_legitimate_host(self, node):
+        """Настраивает легитимный хост"""
+        legitimate_configs = [
+            {
+                'services': [22, 80],
+                'os': 'Ubuntu 20.04.1 LTS',
+                'vulnerabilities': ['Minor config issues'],
+                'suspicion_level': 0
+            },
+            {
+                'services': [80, 443],
+                'os': 'CentOS 7.8',
+                'vulnerabilities': [],
+                'suspicion_level': 0
+            },
+            {
+                'services': [22, 3306],
+                'os': 'Debian 10.3',
+                'vulnerabilities': ['Outdated packages'],
+                'suspicion_level': 1
+            },
+            {
+                'services': [21, 22, 80],
+                'os': 'Windows Server 2019',
+                'vulnerabilities': ['SMB misconfiguration'],
+                'suspicion_level': 1
+            }
+        ]
+
+        config = random.choice(legitimate_configs)
+        node['services'] = config['services']
+        node['os'] = config['os']
+        node['vulnerabilities'] = config['vulnerabilities']
+        node['suspicion_level'] = config['suspicion_level']
+        node['honeypot_indicators'] = []
+
+    def _configure_target(self, node):
+        """Настраивает целевой хост"""
+        node['services'] = [22, 80, 443, 8080]
+        node['os'] = 'Ubuntu 18.04.5 LTS'
+        node['vulnerabilities'] = ['Apache Struts RCE', 'Weak admin credentials']
+        node['suspicion_level'] = 0
+        node['honeypot_indicators'] = []
+
+    def _add_false_positives(self, network, count):
+        """Добавляет ложные индикаторы honeypot'ов к легитимным хостам"""
+        legitimate_hosts = [k for k, v in network.items() if v['type'] == 'legitimate']
+
+        if count > 0 and legitimate_hosts:
+            false_positive_hosts = random.sample(legitimate_hosts, min(count, len(legitimate_hosts)))
+
+            fake_indicators = [
+                'Unusual banner text',
+                'Slow response time',
+                'Default service responses',
+                'Suspicious port configuration'
+            ]
+
+            for host in false_positive_hosts:
+                network[host]['honeypot_indicators'] = [random.choice(fake_indicators)]
+                network[host]['suspicion_level'] = random.randint(2, 4)
+
+    def _show_initial_scan(self, network_map, config):
+        """Показывает результаты начального сканирования"""
+        print(f"\n{XSSColors.WARNING}🌐 ОБНАРУЖЕННАЯ СЕТЕВАЯ ТОПОЛОГИЯ:{XSSColors.RESET}")
+
+        self._display_network_grid(network_map, show_details=False)
+
+        print(f"\n{XSSColors.INFO}📡 Точка входа: {network_map['entry']} (ваша позиция){XSSColors.RESET}")
+        print(f"{XSSColors.SUCCESS}🎯 Цель: {network_map['target']} (целевой сервер){XSSColors.RESET}")
+        print(f"{XSSColors.WARNING}❓ Неизвестные узлы: сканирование требуется{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.SUCCESS}🛠️ ДОСТУПНЫЕ ИНСТРУМЕНТЫ РАЗВЕДКИ:{XSSColors.RESET}")
+        for i, tool in enumerate(config['scan_tools'], 1):
+            tool_name = self._get_tool_display_name(tool)
+            print(f"   {XSSColors.BRIGHT_GREEN}{i}.{XSSColors.RESET} {tool_name}")
+
+    def _display_network_grid(self, network_map, show_details=True):
+        """Отображает сетку сети"""
+        rows, cols = network_map['rows'], network_map['cols']
+
+        # Заголовок с номерами колонок
+        print("     ", end="")
+        for col in range(cols):
+            print(f"{col:^4}", end="")
+        print()
+
+        # Отображаем каждую строку
+        for row in range(rows):
+            print(f"{row:^3} ", end="")
+
+            for col in range(cols):
+                node_id = f"{row}-{col}"
+                node = network_map['nodes'][node_id]
+                symbol = self._get_node_symbol(node, show_details)
+                print(f" {symbol} ", end=" ")
+            print()
+
+        if show_details:
+            print(f"\n{XSSColors.INFO}ЛЕГЕНДА:{XSSColors.RESET}")
+            print(f"   🏠 Точка входа    🎯 Цель         ? Неизвестно")
+            print(f"   ✅ Безопасно     ⚠️  Подозрительно  🍯 Honeypot")
+            print(f"   🔍 Сканируется   ❌ Заблокировано")
+
+    def _get_node_symbol(self, node, show_details):
+        """Возвращает символ для отображения узла"""
+        if node['type'] == 'entry':
+            return f"{XSSColors.SUCCESS}🏠{XSSColors.RESET}"
+        elif node['type'] == 'target':
+            return f"{XSSColors.BRIGHT_GREEN}🎯{XSSColors.RESET}"
+        elif not node['scanned']:
+            return f"{XSSColors.LIGHT_GRAY}?{XSSColors.RESET}"
+        elif show_details:
+            if node['type'] == 'honeypot':
+                return f"{XSSColors.DANGER}🍯{XSSColors.RESET}"
+            elif node['suspicion_level'] >= 5:
+                return f"{XSSColors.WARNING}⚠️{XSSColors.RESET}"
+            else:
+                return f"{XSSColors.SUCCESS}✅{XSSColors.RESET}"
+        else:
+            return f"{XSSColors.INFO}🔍{XSSColors.RESET}"
+
+    def _run_network_infiltration(self, network_map, config):
+        """Основной процесс проникновения в сеть"""
+        current_position = network_map['entry']
+        scanned_nodes = []
+        identified_honeypots = []
+        false_alarms = []
+        start_time = time.time()
+
+        print(f"\n{XSSColors.INFO}📋 КОМАНДЫ РАЗВЕДКИ:{XSSColors.RESET}")
+        print(f"   {XSSColors.BRIGHT_GREEN}scan <tool_id> <position>{XSSColors.RESET} - Сканировать узел")
+        print(f"   {XSSColors.BRIGHT_GREEN}move <position>{XSSColors.RESET} - Переместиться к узлу")
+        print(f"   {XSSColors.BRIGHT_GREEN}analyze <position>{XSSColors.RESET} - Детальный анализ узла")
+        print(f"   {XSSColors.BRIGHT_GREEN}map{XSSColors.RESET} - Показать карту сети")
+        print(f"   {XSSColors.BRIGHT_GREEN}status{XSSColors.RESET} - Статус миссии")
+        print(f"   {XSSColors.BRIGHT_GREEN}help{XSSColors.RESET} - Справка")
+
+        print(
+            f"\n{XSSColors.WARNING}💡 ПРИМЕР: scan 1 1-2 (сканировать узел позиции 1-2 инструментом #1){XSSColors.RESET}")
+
+        while True:
+            # Проверяем временное ограничение
+            if config['time_limit']:
+                elapsed = time.time() - start_time
+                remaining = config['time_limit'] - elapsed
+                if remaining <= 0:
+                    print(f"\n{XSSColors.ERROR}⏰ ВРЕМЯ МИССИИ ИСТЕКЛО!{XSSColors.RESET}")
+                    return False
+                elif remaining <= 30:
+                    print(f"{XSSColors.WARNING}⚠️ Осталось {remaining:.0f} секунд!{XSSColors.RESET}")
+
+            # Показываем текущий статус
+            self._show_infiltration_status(current_position, network_map, scanned_nodes)
+
+            # Получаем команду
+            command = audio_system.get_input_with_sound(
+                f"{XSSColors.PROMPT}[{current_position}]> {XSSColors.RESET}").strip().lower()
+
+            if not command:
+                continue
+
+            parts = command.split()
+            cmd = parts[0]
+
+            if cmd == "scan" and len(parts) >= 3:
+                try:
+                    tool_id = int(parts[1])
+                    target_pos = parts[2]
+
+                    if not (1 <= tool_id <= len(config['scan_tools'])):
+                        print(
+                            f"{XSSColors.ERROR}Неверный ID инструмента. Доступно: 1-{len(config['scan_tools'])}{XSSColors.RESET}")
+                        continue
+
+                    tool = config['scan_tools'][tool_id - 1]
+                    result = self._perform_scan(tool, target_pos, network_map, config)
+
+                    if result['success']:
+                        if target_pos not in scanned_nodes:
+                            scanned_nodes.append(target_pos)
+                        print(f"{XSSColors.SUCCESS}✅ {result['message']}{XSSColors.RESET}")
+
+                        # Показываем результаты сканирования
+                        self._show_scan_results(result['data'])
+
+                    else:
+                        print(f"{XSSColors.ERROR}❌ {result['message']}{XSSColors.RESET}")
+
+                except ValueError:
+                    print(f"{XSSColors.ERROR}Неверный формат. Используйте: scan <tool_id> <position>{XSSColors.RESET}")
+
+            elif cmd == "move" and len(parts) > 1:
+                target_pos = parts[1]
+                result = self._attempt_move(current_position, target_pos, network_map)
+
+                if result['success']:
+                    current_position = target_pos
+                    print(f"{XSSColors.SUCCESS}✅ {result['message']}{XSSColors.RESET}")
+
+                    # Проверяем, достигли ли цели
+                    if current_position == network_map['target']:
+                        final_elapsed = time.time() - start_time
+                        return self._evaluate_mission(identified_honeypots, false_alarms, final_elapsed, True)
+
+                    # Проверяем, попали ли в honeypot
+                    node = network_map['nodes'][current_position]
+                    if node['type'] == 'honeypot':
+                        print(f"\n{XSSColors.DANGER}🚨 ПОПАЛИ В HONEYPOT! МИССИЯ ПРОВАЛЕНА!{XSSColors.RESET}")
+                        self._show_honeypot_detection(node)
+                        return False
+
                 else:
-                    attempts -= 1
-                    print(f"Попыток осталось: {attempts}{XSSColors.RESET}")
-            except ValueError:
-                print(f"{XSSColors.ERROR}Введите числа, разделенные пробелами.{XSSColors.RESET}")
-            except Exception as e:
-                print(f"{XSSColors.ERROR}Ошибка: {e}{XSSColors.RESET}")
+                    print(f"{XSSColors.ERROR}❌ {result['message']}{XSSColors.RESET}")
 
+            elif cmd == "analyze" and len(parts) > 1:
+                target_pos = parts[1]
+                self._analyze_node(target_pos, network_map)
+
+            elif cmd == "map":
+                print(f"\n{XSSColors.INFO}🗺️ КАРТА СЕТИ:{XSSColors.RESET}")
+                self._display_network_grid(network_map, show_details=True)
+
+            elif cmd == "status":
+                self._show_detailed_status(current_position, network_map, scanned_nodes, identified_honeypots)
+
+            elif cmd == "help":
+                self._show_infiltration_help(config)
+
+            else:
+                print(f"{XSSColors.ERROR}Неизвестная команда. Используйте 'help' для справки{XSSColors.RESET}")
+
+    def _perform_scan(self, tool, target_pos, network_map, config):
+        """Выполняет сканирование узла указанным инструментом"""
+        if target_pos not in network_map['nodes']:
+            return {'success': False, 'message': 'Узел не найден в сети'}
+
+        node = network_map['nodes'][target_pos]
+        node['scanned'] = True
+
+        # Различные инструменты дают разную информацию
+        scan_data = {}
+
+        if tool == 'ping':
+            scan_data = self._ping_scan(node)
+        elif tool == 'port_scan':
+            scan_data = self._port_scan(node)
+        elif tool == 'banner_grab':
+            scan_data = self._banner_grab(node)
+        elif tool == 'os_detect':
+            scan_data = self._os_detection(node)
+        elif tool == 'vuln_scan':
+            scan_data = self._vulnerability_scan(node)
+        elif tool == 'traffic_analysis':
+            scan_data = self._traffic_analysis(node)
+
+        tool_name = self._get_tool_display_name(tool)
+        return {
+            'success': True,
+            'message': f'Сканирование {target_pos} завершено ({tool_name})',
+            'data': scan_data
+        }
+
+    def _ping_scan(self, node):
+        """Выполняет ping сканирование"""
+        return {
+            'tool': 'ping',
+            'ip': node['ip'],
+            'alive': True,
+            'response_time': f"{random.randint(1, 50)}ms",
+            'ttl': random.randint(60, 255)
+        }
+
+    def _port_scan(self, node):
+        """Выполняет сканирование портов"""
+        return {
+            'tool': 'port_scan',
+            'ip': node['ip'],
+            'open_ports': node['services'],
+            'port_count': len(node['services']),
+            'scan_time': f"{random.randint(5, 30)}s"
+        }
+
+    def _banner_grab(self, node):
+        """Захватывает баннеры сервисов"""
+        banners = {}
+        for port in node['services']:
+            if port == 22:
+                banners[22] = "SSH-2.0-OpenSSH_7.4"
+            elif port == 80:
+                banners[80] = "Apache/2.4.29 (Ubuntu)"
+            elif port == 443:
+                banners[443] = "nginx/1.14.0"
+            elif port == 3306:
+                banners[3306] = "MySQL 5.7.29"
+
+        # Добавляем индикаторы honeypot'а в баннеры
+        if node['type'] == 'honeypot' and node['honeypot_indicators']:
+            suspicious_banner = random.choice(node['honeypot_indicators'])
+            random_port = random.choice(node['services'])
+            banners[random_port] += f" ({suspicious_banner})"
+
+        return {
+            'tool': 'banner_grab',
+            'ip': node['ip'],
+            'banners': banners,
+            'suspicious_patterns': len(node['honeypot_indicators'])
+        }
+
+    def _os_detection(self, node):
+        """Определяет операционную систему"""
+        return {
+            'tool': 'os_detect',
+            'ip': node['ip'],
+            'os': node['os'],
+            'confidence': random.randint(85, 99),
+            'fingerprint': f"OS:{random.randint(1000, 9999)}"
+        }
+
+    def _vulnerability_scan(self, node):
+        """Сканирует уязвимости"""
+        return {
+            'tool': 'vuln_scan',
+            'ip': node['ip'],
+            'vulnerabilities': node['vulnerabilities'],
+            'risk_level': 'High' if len(node['vulnerabilities']) > 2 else 'Medium',
+            'exploitable': len(node['vulnerabilities']) > 0
+        }
+
+    def _traffic_analysis(self, node):
+        """Анализирует сетевой трафик"""
+        traffic_patterns = []
+
+        if node['type'] == 'honeypot':
+            traffic_patterns = [
+                "Unusual response timing patterns",
+                "Artificial traffic generation",
+                "Honeypot signature in packets"
+            ]
+        else:
+            traffic_patterns = [
+                "Normal user activity",
+                "Standard service responses",
+                "Legitimate network patterns"
+            ]
+
+        return {
+            'tool': 'traffic_analysis',
+            'ip': node['ip'],
+            'traffic_patterns': traffic_patterns,
+            'anomaly_score': node['suspicion_level'],
+            'baseline_deviation': f"{random.randint(0, 10)}%"
+        }
+
+    def _show_scan_results(self, scan_data):
+        """Отображает результаты сканирования"""
+        tool = scan_data['tool']
+        ip = scan_data['ip']
+
+        print(f"\n{XSSColors.INFO}🔍 РЕЗУЛЬТАТЫ СКАНИРОВАНИЯ ({ip}):{XSSColors.RESET}")
+
+        if tool == 'ping':
+            print(f"   Статус: {XSSColors.SUCCESS}АКТИВЕН{XSSColors.RESET}")
+            print(f"   Время отклика: {scan_data['response_time']}")
+            print(f"   TTL: {scan_data['ttl']}")
+
+        elif tool == 'port_scan':
+            print(f"   Открытых портов: {XSSColors.WARNING}{scan_data['port_count']}{XSSColors.RESET}")
+            print(f"   Порты: {', '.join(map(str, scan_data['open_ports']))}")
+            print(f"   Время сканирования: {scan_data['scan_time']}")
+
+        elif tool == 'banner_grab':
+            print(f"   Найдено баннеров: {len(scan_data['banners'])}")
+            for port, banner in scan_data['banners'].items():
+                suspicious = "⚠️" if "suspicious" in banner.lower() or "honeypot" in banner.lower() else ""
+                print(f"     Порт {port}: {banner} {suspicious}")
+
+            if scan_data['suspicious_patterns'] > 0:
+                print(f"   {XSSColors.WARNING}⚠️ Обнаружены подозрительные паттерны!{XSSColors.RESET}")
+
+        elif tool == 'os_detect':
+            print(f"   ОС: {XSSColors.INFO}{scan_data['os']}{XSSColors.RESET}")
+            print(f"   Точность: {scan_data['confidence']}%")
+            print(f"   Отпечаток: {scan_data['fingerprint']}")
+
+        elif tool == 'vuln_scan':
+            print(f"   Уязвимости: {XSSColors.ERROR}{len(scan_data['vulnerabilities'])}{XSSColors.RESET}")
+            print(f"   Уровень риска: {scan_data['risk_level']}")
+            for vuln in scan_data['vulnerabilities']:
+                print(f"     • {vuln}")
+
+        elif tool == 'traffic_analysis':
+            print(f"   Аномальность: {XSSColors.WARNING}{scan_data['anomaly_score']}/10{XSSColors.RESET}")
+            print(f"   Отклонение от базы: {scan_data['baseline_deviation']}")
+            for pattern in scan_data['traffic_patterns']:
+                color = XSSColors.ERROR if "honeypot" in pattern.lower() or "artificial" in pattern.lower() else XSSColors.SUCCESS
+                print(f"     • {color}{pattern}{XSSColors.RESET}")
+
+    def _attempt_move(self, current_pos, target_pos, network_map):
+        """Попытка перемещения к узлу"""
+        if target_pos not in network_map['nodes']:
+            return {'success': False, 'message': 'Целевой узел не существует'}
+
+        # Проверяем, является ли перемещение допустимым (соседние узлы)
+        current_row, current_col = map(int, current_pos.split('-'))
+        target_row, target_col = map(int, target_pos.split('-'))
+
+        # Разрешаем перемещение только к соседним узлам (включая диагонали)
+        row_diff = abs(target_row - current_row)
+        col_diff = abs(target_col - current_col)
+
+        if row_diff <= 1 and col_diff <= 1 and (row_diff + col_diff) > 0:
+            return {
+                'success': True,
+                'message': f'Перемещение с {current_pos} на {target_pos}'
+            }
+        else:
+            return {
+                'success': False,
+                'message': 'Можно перемещаться только к соседним узлам'
+            }
+
+    def _analyze_node(self, target_pos, network_map):
+        """Детальный анализ узла"""
+        if target_pos not in network_map['nodes']:
+            print(f"{XSSColors.ERROR}Узел {target_pos} не найден{XSSColors.RESET}")
+            return
+
+        node = network_map['nodes'][target_pos]
+
+        if not node['scanned']:
+            print(
+                f"{XSSColors.WARNING}Узел {target_pos} не сканирован. Выполните сканирование сначала.{XSSColors.RESET}")
+            return
+
+        print(f"\n{XSSColors.HEADER}━━━━━━━━━━━━━━━━ АНАЛИЗ УЗЛА {target_pos} ━━━━━━━━━━━━━━━━{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.INFO}📋 ОСНОВНАЯ ИНФОРМАЦИЯ:{XSSColors.RESET}")
+        print(f"   IP-адрес: {node['ip']}")
+        print(f"   Тип: {self._get_node_type_display(node['type'])}")
+        print(f"   ОС: {node['os'] if node['os'] else 'Неизвестна'}")
+
+        if node['services']:
+            print(f"\n{XSSColors.WARNING}🔌 АКТИВНЫЕ СЕРВИСЫ:{XSSColors.RESET}")
+            for port in node['services']:
+                service_name = self._get_service_name(port)
+                print(f"   • Порт {port}: {service_name}")
+
+        if node['vulnerabilities']:
+            print(f"\n{XSSColors.ERROR}🔓 УЯЗВИМОСТИ:{XSSColors.RESET}")
+            for vuln in node['vulnerabilities']:
+                print(f"   • {vuln}")
+
+        # Анализ подозрительности
+        suspicion = node['suspicion_level']
+        if suspicion > 0:
+            print(f"\n{XSSColors.WARNING}⚠️ АНАЛИЗ ПОДОЗРИТЕЛЬНОСТИ:{XSSColors.RESET}")
+            print(f"   Уровень подозрительности: {self._get_suspicion_color(suspicion)}{suspicion}/10{XSSColors.RESET}")
+
+            if node['honeypot_indicators']:
+                print(f"   {XSSColors.ERROR}🚨 ИНДИКАТОРЫ HONEYPOT'А:{XSSColors.RESET}")
+                for indicator in node['honeypot_indicators']:
+                    print(f"     • {indicator}")
+
+        # Рекомендации
+        print(f"\n{XSSColors.SUCCESS}💡 РЕКОМЕНДАЦИИ:{XSSColors.RESET}")
+        if suspicion >= 7:
+            print(f"   {XSSColors.ERROR}❌ КРАЙНЕ ОПАСНО - Вероятно honeypot!{XSSColors.RESET}")
+        elif suspicion >= 4:
+            print(f"   {XSSColors.WARNING}⚠️ ПОДОЗРИТЕЛЬНО - Требует осторожности{XSSColors.RESET}")
+        elif suspicion >= 2:
+            print(f"   {XSSColors.INFO}ℹ️ УМЕРЕННЫЙ РИСК - Дополнительная проверка{XSSColors.RESET}")
+        else:
+            print(f"   {XSSColors.SUCCESS}✅ ОТНОСИТЕЛЬНО БЕЗОПАСНО{XSSColors.RESET}")
+
+    def _show_infiltration_status(self, current_pos, network_map, scanned_nodes):
+        """Показывает статус проникновения"""
+        total_nodes = len(network_map['nodes'])
+        scanned_count = len(scanned_nodes)
+
+        print(f"\n{XSSColors.INFO}📊 Позиция: {XSSColors.BRIGHT_GREEN}{current_pos}{XSSColors.RESET} | "
+              f"Отсканировано: {XSSColors.WARNING}{scanned_count}/{total_nodes}{XSSColors.RESET} узлов")
+
+    def _show_detailed_status(self, current_pos, network_map, scanned_nodes, identified_honeypots):
+        """Показывает детальный статус миссии"""
+        print(f"\n{XSSColors.HEADER}━━━━━━━━━━━━━━━━ СТАТУС МИССИИ ━━━━━━━━━━━━━━━━{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.INFO}📍 ТЕКУЩАЯ ПОЗИЦИЯ: {current_pos}{XSSColors.RESET}")
+        print(f"🎯 ЦЕЛЬ: {network_map['target']}")
+        print(f"🔍 Отсканированных узлов: {len(scanned_nodes)}")
+        print(f"🍯 Обнаруженных honeypot'ов: {len(identified_honeypots)}")
+
+        # Показываем подозрительные узлы
+        suspicious_nodes = []
+        for node_id, node in network_map['nodes'].items():
+            if node['scanned'] and node['suspicion_level'] >= 4:
+                suspicious_nodes.append((node_id, node['suspicion_level']))
+
+        if suspicious_nodes:
+            print(f"\n{XSSColors.WARNING}⚠️ ПОДОЗРИТЕЛЬНЫЕ УЗЛЫ:{XSSColors.RESET}")
+            for node_id, suspicion in sorted(suspicious_nodes, key=lambda x: x[1], reverse=True):
+                color = self._get_suspicion_color(suspicion)
+                print(f"   • {node_id}: {color}{suspicion}/10{XSSColors.RESET}")
+
+    def _show_honeypot_detection(self, node):
+        """Показывает информацию об обнаруженном honeypot'е"""
+        print(f"\n{XSSColors.DANGER}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.DANGER}║                    🍯 HONEYPOT DETECTED! 🍯                  ║{XSSColors.RESET}")
+        print(f"{XSSColors.DANGER}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.ERROR}🚨 Вы попали в honeypot на узле {node['ip']}!{XSSColors.RESET}")
+        print(f"📊 Уровень подозрительности был: {node['suspicion_level']}/10")
+
+        if node['honeypot_indicators']:
+            print(f"\n{XSSColors.WARNING}🔍 ИНДИКАТОРЫ, КОТОРЫЕ СЛЕДОВАЛО ЗАМЕТИТЬ:{XSSColors.RESET}")
+            for indicator in node['honeypot_indicators']:
+                print(f"   • {indicator}")
+
+        print(
+            f"\n{XSSColors.INFO}💡 Система безопасности зафиксировала вторжение и активировала защитные меры.{XSSColors.RESET}")
+
+    def _evaluate_mission(self, identified_honeypots, false_alarms, time_taken, success):
+        """Оценивает результаты миссии"""
+        print(f"\n{XSSColors.HEADER}━━━━━━━━━━━━━━━━ РЕЗУЛЬТАТЫ МИССИИ ━━━━━━━━━━━━━━━━{XSSColors.RESET}")
+
+        if success:
+            self._show_mission_success(identified_honeypots, false_alarms, time_taken)
+            return True
+        else:
+            self._show_mission_failure(time_taken)
+            return False
+
+    def _show_mission_success(self, identified_honeypots, false_alarms, time_taken):
+        """Показывает экран успешной миссии"""
+        audio_system.play_sound("minigame_win")
+
+        print(f"\n{XSSColors.SUCCESS}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.SUCCESS}║                🎉 МИССИЯ ВЫПОЛНЕНА! 🎉                       ║{XSSColors.RESET}")
+        print(f"{XSSColors.SUCCESS}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.SUCCESS}🎯 Цель достигнута без обнаружения!{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}⏱️ Время миссии: {time_taken:.1f} секунд{XSSColors.RESET}")
+
+        # Подсчет очков
+        base_score = 100
+        time_bonus = max(0, 50 - int(time_taken / 10))
+        stealth_bonus = 25 if len(identified_honeypots) == 0 else 10
+
+        total_score = base_score + time_bonus + stealth_bonus
+
+        print(f"\n{XSSColors.INFO}📊 ПОДСЧЕТ ОЧКОВ:{XSSColors.RESET}")
+        print(f"   Базовые очки: +{base_score}")
+        if time_bonus > 0:
+            print(f"   Бонус за скорость: +{time_bonus}")
+        print(f"   Бонус за скрытность: +{stealth_bonus}")
+        print(f"   {XSSColors.BRIGHT_GREEN}Итого: {total_score} очков{XSSColors.RESET}")
+
+        # Оценка производительности
+        if total_score >= 160:
+            rating = f"{XSSColors.SUCCESS}🌟 МАСТЕР РАЗВЕДКИ!{XSSColors.RESET}"
+        elif total_score >= 140:
+            rating = f"{XSSColors.WARNING}💪 ОПЫТНЫЙ АГЕНТ!{XSSColors.RESET}"
+        elif total_score >= 120:
+            rating = f"{XSSColors.INFO}👍 ХОРОШАЯ РАБОТА!{XSSColors.RESET}"
+        else:
+            rating = f"{XSSColors.WARNING}😅 ЦЕЛЬ ДОСТИГНУТА{XSSColors.RESET}"
+
+        print(f"\n🏆 Оценка: {rating}")
+
+        print(f"\n{XSSColors.SUCCESS}✅ Honeypot'ы успешно обойдены! Доступ к целевой системе получен.{XSSColors.RESET}")
+
+    def _show_mission_failure(self, time_taken):
+        """Показывает экран провала миссии"""
         audio_system.play_sound("minigame_lose")
-        print(f"\n{XSSColors.ERROR}❌ Провал! Вы были обнаружены honeypot'ом.{XSSColors.RESET}")
-        return False
+
+        print(f"\n{XSSColors.ERROR}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.ERROR}║                    ❌ МИССИЯ ПРОВАЛЕНА ❌                    ║{XSSColors.RESET}")
+        print(f"{XSSColors.ERROR}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.ERROR}🚨 Обнаружение сорвало операцию{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}⏱️ Время до обнаружения: {time_taken:.1f} секунд{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.WARNING}💡 СОВЕТЫ ДЛЯ СЛЕДУЮЩЕЙ ПОПЫТКИ:{XSSColors.RESET}")
+        print(f"   • Тщательно сканируйте узлы перед перемещением")
+        print(f"   • Обращайте внимание на уровень подозрительности")
+        print(f"   • Используйте все доступные инструменты разведки")
+        print(f"   • Анализируйте результаты сканирования на предмет индикаторов honeypot'ов")
+
+        print(f"\n{XSSColors.INFO}🎯 Honeypot'ы - это ловушки, замаскированные под легитимные системы{XSSColors.RESET}")
+
+    def _show_infiltration_help(self, config):
+        """Показывает справку по проникновению"""
+        print(f"\n{XSSColors.INFO}📖 СПРАВКА ПО ПРОНИКНОВЕНИЮ В СЕТЬ:{XSSColors.RESET}")
+        print(f"   {XSSColors.BRIGHT_GREEN}scan <tool_id> <position>{XSSColors.RESET} - Сканировать узел инструментом")
+        print(f"   {XSSColors.BRIGHT_GREEN}move <position>{XSSColors.RESET} - Переместиться к соседнему узлу")
+        print(f"   {XSSColors.BRIGHT_GREEN}analyze <position>{XSSColors.RESET} - Детальный анализ узла")
+        print(f"   {XSSColors.BRIGHT_GREEN}map{XSSColors.RESET} - Показать карту сети")
+        print(f"   {XSSColors.BRIGHT_GREEN}status{XSSColors.RESET} - Статус миссии")
+
+        print(f"\n{XSSColors.WARNING}💡 ПРИМЕРЫ КОМАНД:{XSSColors.RESET}")
+        print(f"   {XSSColors.LIGHT_GRAY}scan 1 1-2{XSSColors.RESET} - Ping узла 1-2")
+        print(f"   {XSSColors.LIGHT_GRAY}scan 3 1-2{XSSColors.RESET} - Захват баннеров узла 1-2")
+        print(f"   {XSSColors.LIGHT_GRAY}move 1-1{XSSColors.RESET} - Переместиться к узлу 1-1")
+        print(f"   {XSSColors.LIGHT_GRAY}analyze 1-2{XSSColors.RESET} - Анализ узла 1-2")
+
+        print(f"\n{XSSColors.SUCCESS}🛠️ ИНСТРУМЕНТЫ РАЗВЕДКИ:{XSSColors.RESET}")
+        tools = {
+            '1. 📡 Ping': 'Проверка доступности узла',
+            '2. 🔍 Port Scan': 'Сканирование открытых портов',
+            '3. 📋 Banner Grab': 'Захват баннеров сервисов',
+            '4. 💻 OS Detection': 'Определение операционной системы',
+            '5. 🔓 Vuln Scan': 'Поиск уязвимостей',
+            '6. 📊 Traffic Analysis': 'Анализ сетевого трафика'
+        }
+
+        available_tools = config['scan_tools']
+        for i, tool in enumerate(available_tools, 1):
+            tool_key = f"{i}. {self._get_tool_display_name(tool)}"
+            description = tools.get(tool_key, 'Инструмент разведки')
+            print(f"   • {tool_key}: {description}")
+
+        print(f"\n{XSSColors.ERROR}🍯 ОБНАРУЖЕНИЕ HONEYPOT'ОВ:{XSSColors.RESET}")
+        print(f"   • Высокий уровень подозрительности (7+/10)")
+        print(f"   • Подозрительные баннеры и отклики")
+        print(f"   • Слишком много открытых портов")
+        print(f"   • Идеальные уязвимости (слишком удобные)")
+        print(f"   • Аномальные паттерны трафика")
+
+        print(f"\n{XSSColors.WARNING}🎯 СТРАТЕГИЯ:{XSSColors.RESET}")
+        print(f"   1. Сканируйте узлы перед перемещением")
+        print(f"   2. Анализируйте подозрительные узлы детально")
+        print(f"   3. Избегайте узлов с высоким уровнем подозрительности")
+        print(f"   4. Планируйте безопасный маршрут к цели")
+
+    # Вспомогательные методы
+
+    def _get_tool_display_name(self, tool):
+        """Возвращает отображаемое имя инструмента"""
+        names = {
+            'ping': '📡 Ping',
+            'port_scan': '🔍 Port Scan',
+            'banner_grab': '📋 Banner Grab',
+            'os_detect': '💻 OS Detection',
+            'vuln_scan': '🔓 Vuln Scan',
+            'traffic_analysis': '📊 Traffic Analysis'
+        }
+        return names.get(tool, tool.title())
+
+    def _get_node_type_display(self, node_type):
+        """Возвращает отображаемый тип узла"""
+        types = {
+            'entry': f"{XSSColors.SUCCESS}Точка входа{XSSColors.RESET}",
+            'target': f"{XSSColors.BRIGHT_GREEN}Цель{XSSColors.RESET}",
+            'honeypot': f"{XSSColors.DANGER}Honeypot{XSSColors.RESET}",
+            'legitimate': f"{XSSColors.INFO}Легитимный хост{XSSColors.RESET}",
+            'unknown': f"{XSSColors.LIGHT_GRAY}Неизвестно{XSSColors.RESET}"
+        }
+        return types.get(node_type, node_type)
+
+    def _get_service_name(self, port):
+        """Возвращает название сервиса по порту"""
+        services = {
+            21: 'FTP',
+            22: 'SSH',
+            23: 'Telnet',
+            25: 'SMTP',
+            53: 'DNS',
+            80: 'HTTP',
+            110: 'POP3',
+            143: 'IMAP',
+            443: 'HTTPS',
+            993: 'IMAPS',
+            3306: 'MySQL',
+            8080: 'HTTP-Alt'
+        }
+        return services.get(port, 'Unknown')
+
+    def _get_suspicion_color(self, level):
+        """Возвращает цвет для уровня подозрительности"""
+        if level >= 7:
+            return XSSColors.DANGER
+        elif level >= 4:
+            return XSSColors.ERROR
+        elif level >= 2:
+            return XSSColors.WARNING
+        else:
+            return XSSColors.SUCCESS
+
+    def get_difficulty(self) -> int:
+        """Возвращает сложность в зависимости от навыка игрока"""
+        skill_level = game_state.get_skill(self.skill)
+        return min(3 + skill_level // 2, 8)
+
+    def get_reputation_reward(self) -> int:
+        """Рассчитывает награду репутации для этой мини-игры"""
+        skill_level = game_state.get_skill(self.skill)
+        difficulty = self.get_difficulty()
+
+        base_rep = 3
+        difficulty_bonus = difficulty // 2
+        skill_bonus = 2 if skill_level >= 7 else 0
+
+        return base_rep + difficulty_bonus + skill_bonus
+
+    def show_potential_rewards(self) -> None:
+        """Показывает потенциальные награды перед началом игры"""
+        skill_level = game_state.get_skill(self.skill)
+        rep_reward = self.get_reputation_reward()
+
+        print(f"\n{XSSColors.INFO}🏆 ПОТЕНЦИАЛЬНЫЕ НАГРАДЫ:{XSSColors.RESET}")
+        print(f"   💰 BTC: 7-22")
+        print(f"   ⭐ Репутация: {rep_reward}")
+        print(f"   📊 Сложность: {self.get_difficulty()}/8")
+        print(f"   🎯 Тип навыка: Stealth (Скрытность)")
+
+        if skill_level >= 8:
+            print(f"   ✨ Экспертный бонус: Продвинутые инструменты разведки")
 
 class LogDeletionGame(Minigame):
     """Мини-игра "Удаление логов"."""
@@ -4533,7 +5891,7 @@ class MinigameHub:
         difficulty = game.get_difficulty()
 
         print(f"\n{XSSColors.HEADER}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
-        print(f"{XSSColors.HEADER}║                    🚀 НАЧАЛО ТРЕНИРОВКИ                      ║{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}                     🚀 НАЧАЛО ТРЕНИРОВКИ                      {XSSColors.RESET}")
         print(f"{XSSColors.HEADER}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
 
         print(f"\n{XSSColors.BRIGHT_GREEN}🎯 {game.name}{XSSColors.RESET}")
