@@ -5142,66 +5142,1427 @@ class SocialEngineeringGame(Minigame):
         print(f"\n{XSSColors.ERROR}❌ Провал! Не удалось получить нужную информацию.{XSSColors.RESET}")
         return False
 
+
 class CovertChannelGame(Minigame):
-    """Мини-игра "Скрытый канал"."""
+    """Продвинутая мини-игра "Скрытый канал" с реалистичными техниками сокрытия данных"""
+
     def __init__(self):
         super().__init__(
             "Скрытый канал",
-            "Передайте 'секретное сообщение' через 'шумовой' канал",
+            "Используйте различные техники стеганографии для скрытой передачи данных",
             "stealth"
         )
 
     def play(self) -> bool:
         audio_system.play_sound("minigame_start")
-        print(f"\n{XSSColors.WARNING}━━━━━━━━━━ СКРЫТЫЙ КАНАЛ ━━━━━━━━━━{XSSColors.RESET}")
+        self._show_covert_lab_interface()
 
-        secret_message = "HI" # Простое сообщение
-        channel_length = 20
-        noise_chars = "abcdefghijklmnopqrstuvwxyz1234567890"
+        skill_level = game_state.get_skill(self.skill)
+        mission_config = self._get_mission_config(skill_level)
 
-        print(f"{XSSColors.INFO}Вам нужно передать секретное сообщение '{secret_message}' через шумный канал.{XSSColors.RESET}")
-        print(f"{XSSColors.INFO}Канал представляет собой строку из {channel_length} символов. Вы можете выбрать 2 символа, в которые 'встроите' сообщение.{XSSColors.RESET}")
-        print(f"{XSSColors.INFO}Введите два индекса (от 0 до {channel_length - 1}) для передачи 'H' и 'I' соответственно.{XSSColors.RESET}")
-        print(f"{XSSColors.INFO}Пример: 5 12{XSSColors.RESET}\n")
+        # Генерируем миссию
+        mission = self._generate_covert_mission(mission_config)
 
-        channel = [random.choice(noise_chars) for _ in range(channel_length)]
+        # Показываем брифинг
+        self._show_mission_briefing(mission)
 
-        print(f"Канал: {''.join(channel)}")
-        print(f"Индексы: {' '.join([str(i%10) for i in range(channel_length)])}") # Для удобства отслеживания индексов
+        # Основной игровой процесс
+        return self._run_covert_operation(mission, mission_config)
 
-        attempts = 2
-        while attempts > 0:
-            user_input = audio_system.get_input_with_sound(f"{XSSColors.PROMPT}Введите два индекса (через пробел): {XSSColors.RESET}")
+    def _show_covert_lab_interface(self):
+        """Показывает интерфейс лаборатории скрытых каналов"""
+        print(f"\n{XSSColors.HEADER}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}║              🕵️  COVERT CHANNEL LABORATORY v2.8              ║{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}║                  ЛАБОРАТОРИЯ СТЕГАНОГРАФИИ                   ║{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
 
-            try:
-                idx1, idx2 = map(int, user_input.split())
+        print(
+            f"\n{XSSColors.WARNING}🎯 МИССИЯ: Передать секретные данные незаметно для систем мониторинга{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}🔬 Используйте продвинутые техники стеганографии и сокрытия{XSSColors.RESET}")
 
-                if not (0 <= idx1 < channel_length and 0 <= idx2 < channel_length):
-                    print(f"{XSSColors.ERROR}Индексы вне допустимого диапазона (0-{channel_length - 1}).{XSSColors.RESET}")
-                    attempts -= 1
-                    continue
+    def _get_mission_config(self, skill_level):
+        """Конфигурация миссии в зависимости от сложности"""
+        configs = {
+            'novice': {
+                'data_size': 'small',  # 2-4 байта
+                'detection_level': 'basic',
+                'available_methods': ['lsb_image', 'text_spacing', 'dns_timing'],
+                'monitoring_systems': 1,
+                'time_limit': 180,  # 3 минуты
+                'hints_available': 3,
+                'noise_level': 'low'
+            },
+            'intermediate': {
+                'data_size': 'medium',  # 8-16 байт
+                'detection_level': 'moderate',
+                'available_methods': ['lsb_image', 'text_spacing', 'dns_timing', 'tcp_timestamp', 'icmp_echo'],
+                'monitoring_systems': 2,
+                'time_limit': 150,
+                'hints_available': 2,
+                'noise_level': 'medium'
+            },
+            'advanced': {
+                'data_size': 'large',  # 32-64 байта
+                'detection_level': 'high',
+                'available_methods': ['lsb_image', 'text_spacing', 'dns_timing', 'tcp_timestamp', 'icmp_echo',
+                                      'file_slack'],
+                'monitoring_systems': 3,
+                'time_limit': 120,
+                'hints_available': 1,
+                'noise_level': 'high'
+            },
+            'expert': {
+                'data_size': 'enterprise',  # 128+ байт
+                'detection_level': 'military',
+                'available_methods': ['lsb_image', 'text_spacing', 'dns_timing', 'tcp_timestamp', 'icmp_echo',
+                                      'file_slack', 'blockchain_meta', 'audio_spectral'],
+                'monitoring_systems': 4,
+                'time_limit': 90,
+                'hints_available': 0,
+                'noise_level': 'extreme'
+            }
+        }
 
-                # Имитация передачи: заменяем символы в выбранных индексах
-                test_channel = list(channel)
-                test_channel[idx1] = 'H'
-                test_channel[idx2] = 'I'
+        if skill_level <= 2:
+            return configs['novice']
+        elif skill_level <= 5:
+            return configs['intermediate']
+        elif skill_level <= 7:
+            return configs['advanced']
+        else:
+            return configs['expert']
 
-                print(f"Переданный канал: {''.join(test_channel)}")
+    def _generate_covert_mission(self, config):
+        """Генерирует миссию для скрытой передачи"""
+        # Определяем тип секретных данных
+        data_types = {
+            'small': {
+                'data': self._generate_secret_code(8),  # 8-символьный код
+                'description': 'Код активации агента',
+                'priority': 'Высокий',
+                'bytes': 8
+            },
+            'medium': {
+                'data': self._generate_coordinates() + "|" + self._generate_time_code(),
+                'description': 'Координаты встречи и время',
+                'priority': 'Критический',
+                'bytes': 24
+            },
+            'large': {
+                'data': self._generate_operation_plan(),
+                'description': 'План операции "Фантом"',
+                'priority': 'Совершенно секретно',
+                'bytes': 64
+            },
+            'enterprise': {
+                'data': self._generate_intelligence_report(),
+                'description': 'Разведывательный отчет',
+                'priority': 'Только для руководства',
+                'bytes': 128
+            }
+        }
 
-                if test_channel[idx1] == secret_message[0] and test_channel[idx2] == secret_message[1]:
-                    audio_system.play_sound("minigame_win")
-                    print(f"\n{XSSColors.SUCCESS}🎉 УСПЕХ! Секретное сообщение '{secret_message}' успешно передано незаметно!{XSSColors.RESET}")
-                    return True
+        secret_data = data_types[config['data_size']]
+
+        # Генерируем контекст миссии
+        mission_contexts = [
+            {
+                'scenario': 'Промышленный шпионаж',
+                'target': 'TechCorp Industries',
+                'cover': 'IT-консультант',
+                'risk_level': 'Средний'
+            },
+            {
+                'scenario': 'Правительственная разведка',
+                'target': 'Министерство обороны',
+                'cover': 'Системный администратор',
+                'risk_level': 'Высокий'
+            },
+            {
+                'scenario': 'Кибер-операция',
+                'target': 'Банковская система',
+                'cover': 'Специалист по безопасности',
+                'risk_level': 'Критический'
+            },
+            {
+                'scenario': 'Контрразведка',
+                'target': 'Иностранная резидентура',
+                'cover': 'Журналист',
+                'risk_level': 'Экстремальный'
+            }
+        ]
+
+        context = random.choice(mission_contexts)
+
+        return {
+            'context': context,
+            'secret_data': secret_data,
+            'monitoring_systems': self._generate_monitoring_systems(config),
+            'cover_traffic': self._generate_cover_traffic(config),
+            'time_window': config['time_limit']
+        }
+
+    def _generate_monitoring_systems(self, config):
+        """Генерирует системы мониторинга"""
+        systems = []
+
+        all_systems = [
+            {
+                'name': 'Firewall DPI',
+                'type': 'deep_packet_inspection',
+                'detection_methods': ['pattern_matching', 'statistical_analysis'],
+                'effectiveness': 70,
+                'description': 'Глубокая инспекция пакетов с анализом содержимого'
+            },
+            {
+                'name': 'IDS Snort',
+                'type': 'intrusion_detection',
+                'detection_methods': ['signature_based', 'anomaly_detection'],
+                'effectiveness': 65,
+                'description': 'Система обнаружения вторжений с базой сигнатур'
+            },
+            {
+                'name': 'Traffic Analyzer',
+                'type': 'network_analysis',
+                'detection_methods': ['flow_analysis', 'timing_analysis'],
+                'effectiveness': 80,
+                'description': 'Анализатор сетевого трафика с ML-алгоритмами'
+            },
+            {
+                'name': 'Steganography Scanner',
+                'type': 'stego_detection',
+                'detection_methods': ['lsb_analysis', 'frequency_analysis'],
+                'effectiveness': 85,
+                'description': 'Специализированный сканер стеганографии'
+            },
+            {
+                'name': 'Behavioral Monitor',
+                'type': 'behavior_analysis',
+                'detection_methods': ['user_profiling', 'access_patterns'],
+                'effectiveness': 75,
+                'description': 'Система анализа поведения пользователей'
+            }
+        ]
+
+        # Выбираем системы в зависимости от количества
+        selected_systems = random.sample(all_systems, config['monitoring_systems'])
+
+        # Адаптируем эффективность к уровню сложности
+        detection_multiplier = {
+            'basic': 0.7,
+            'moderate': 0.85,
+            'high': 1.0,
+            'military': 1.2
+        }
+
+        for system in selected_systems:
+            system['effectiveness'] = min(95, int(
+                system['effectiveness'] * detection_multiplier[config['detection_level']]))
+            systems.append(system)
+
+        return systems
+
+    def _generate_cover_traffic(self, config):
+        """Генерирует легитимный трафик для маскировки"""
+        traffic_types = [
+            {
+                'type': 'web_browsing',
+                'description': 'Обычный веб-трафик (HTTP/HTTPS)',
+                'volume': 'high',
+                'suspicion': 'very_low'
+            },
+            {
+                'type': 'email_exchange',
+                'description': 'Корпоративная почта (SMTP/IMAP)',
+                'volume': 'medium',
+                'suspicion': 'low'
+            },
+            {
+                'type': 'file_transfers',
+                'description': 'Передача файлов (FTP/SFTP)',
+                'volume': 'medium',
+                'suspicion': 'medium'
+            },
+            {
+                'type': 'video_calls',
+                'description': 'Видеоконференции (RTP/WebRTC)',
+                'volume': 'high',
+                'suspicion': 'low'
+            },
+            {
+                'type': 'software_updates',
+                'description': 'Обновления ПО',
+                'volume': 'low',
+                'suspicion': 'very_low'
+            }
+        ]
+
+        # Выбираем подходящие типы трафика
+        available_traffic = random.sample(traffic_types, random.randint(2, 4))
+        return available_traffic
+
+    def _show_mission_briefing(self, mission):
+        """Показывает брифинг миссии"""
+        print(f"\n{XSSColors.WARNING}📋 БРИФИНГ МИССИИ{XSSColors.RESET}")
+        print(f"{XSSColors.LIGHT_GRAY}{'─' * 60}{XSSColors.RESET}")
+
+        context = mission['context']
+        secret_data = mission['secret_data']
+
+        print(f"\n{XSSColors.INFO}🎭 ЛЕГЕНДА:{XSSColors.RESET}")
+        print(f"   Сценарий: {context['scenario']}")
+        print(f"   Цель: {context['target']}")
+        print(f"   Прикрытие: {context['cover']}")
+        print(
+            f"   Уровень риска: {self._get_risk_color(context['risk_level'])}{context['risk_level']}{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.ERROR}🔒 СЕКРЕТНЫЕ ДАННЫЕ:{XSSColors.RESET}")
+        print(f"   Тип: {secret_data['description']}")
+        print(f"   Приоритет: {secret_data['priority']}")
+        print(f"   Размер: {secret_data['bytes']} байт")
+        print(f"   Данные: {XSSColors.DANGER}[ЗАСЕКРЕЧЕНО]{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.WARNING}🔍 СИСТЕМЫ МОНИТОРИНГА:{XSSColors.RESET}")
+        for i, system in enumerate(mission['monitoring_systems'], 1):
+            effectiveness_color = self._get_effectiveness_color(system['effectiveness'])
+            print(f"   {i}. {system['name']}")
+            print(f"      Тип: {system['type']}")
+            print(f"      Эффективность: {effectiveness_color}{system['effectiveness']}%{XSSColors.RESET}")
+            print(f"      Описание: {system['description']}")
+
+        print(f"\n{XSSColors.SUCCESS}📡 ДОСТУПНЫЙ ЛЕГИТИМНЫЙ ТРАФИК:{XSSColors.RESET}")
+        for traffic in mission['cover_traffic']:
+            suspicion_color = self._get_suspicion_color(traffic['suspicion'])
+            print(
+                f"   • {traffic['description']} - Подозрительность: {suspicion_color}{traffic['suspicion']}{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.INFO}⏰ Время на выполнение: {mission['time_window']} секунд{XSSColors.RESET}")
+
+    def _run_covert_operation(self, mission, config):
+        """Основной процесс скрытой передачи"""
+        available_methods = config['available_methods']
+        secret_data = mission['secret_data']['data']
+        monitoring_systems = mission['monitoring_systems']
+
+        print(f"\n{XSSColors.SUCCESS}🛠️  ДОСТУПНЫЕ МЕТОДЫ СОКРЫТИЯ:{XSSColors.RESET}")
+        for i, method in enumerate(available_methods, 1):
+            method_info = self._get_method_info(method)
+            print(f"   {i}. {method_info['name']}")
+            print(f"      Описание: {method_info['description']}")
+            print(f"      Скрытность: {self._get_stealth_rating(method_info['stealth'])}")
+            print(f"      Пропускная способность: {method_info['capacity']}")
+
+        print(f"\n{XSSColors.INFO}📋 КОМАНДЫ ОПЕРАЦИИ:{XSSColors.RESET}")
+        print(f"   {XSSColors.BRIGHT_GREEN}use <method_id>{XSSColors.RESET} - Выбрать метод сокрытия")
+        print(f"   {XSSColors.BRIGHT_GREEN}configure <parameters>{XSSColors.RESET} - Настроить параметры")
+        print(f"   {XSSColors.BRIGHT_GREEN}test{XSSColors.RESET} - Тестовая передача")
+        print(f"   {XSSColors.BRIGHT_GREEN}transmit{XSSColors.RESET} - Передать секретные данные")
+        print(f"   {XSSColors.BRIGHT_GREEN}status{XSSColors.RESET} - Статус операции")
+        print(f"   {XSSColors.BRIGHT_GREEN}abort{XSSColors.RESET} - Прервать операцию")
+
+        # Состояние операции
+        operation_state = {
+            'selected_method': None,
+            'configured': False,
+            'test_passed': False,
+            'detection_risk': 0,
+            'time_elapsed': 0,
+            'attempts': 0,
+            'max_attempts': 3
+        }
+
+        start_time = time.time()
+
+        while operation_state['attempts'] < operation_state['max_attempts']:
+            # Проверяем время
+            elapsed = time.time() - start_time
+            remaining = mission['time_window'] - elapsed
+
+            if remaining <= 0:
+                print(f"\n{XSSColors.ERROR}⏰ ВРЕМЯ ОПЕРАЦИИ ИСТЕКЛО!{XSSColors.RESET}")
+                return self._evaluate_operation(operation_state, mission, elapsed, False, "timeout")
+
+            # Показываем статус
+            self._show_operation_status(operation_state, remaining)
+
+            # Получаем команду
+            command = audio_system.get_input_with_sound(
+                f"{XSSColors.PROMPT}[Операция]> {XSSColors.RESET}").strip().lower()
+
+            if not command:
+                continue
+
+            parts = command.split()
+            cmd = parts[0]
+
+            if cmd == "use" and len(parts) > 1:
+                try:
+                    method_id = int(parts[1])
+                    if 1 <= method_id <= len(available_methods):
+                        method = available_methods[method_id - 1]
+                        operation_state['selected_method'] = method
+                        operation_state['configured'] = False
+                        operation_state['test_passed'] = False
+                        print(
+                            f"{XSSColors.SUCCESS}✅ Выбран метод: {self._get_method_info(method)['name']}{XSSColors.RESET}")
+                    else:
+                        print(f"{XSSColors.ERROR}Неверный ID метода{XSSColors.RESET}")
+                except ValueError:
+                    print(f"{XSSColors.ERROR}Неверный формат команды{XSSColors.RESET}")
+
+            elif cmd == "configure":
+                if operation_state['selected_method']:
+                    result = self._configure_method(operation_state['selected_method'],
+                                                    parts[1:] if len(parts) > 1 else [])
+                    operation_state['configured'] = result['success']
+                    operation_state['detection_risk'] = result.get('risk', 0)
+                    if result['success']:
+                        print(f"{XSSColors.SUCCESS}✅ Метод настроен{XSSColors.RESET}")
+                    else:
+                        print(f"{XSSColors.ERROR}❌ {result['message']}{XSSColors.RESET}")
                 else:
-                    attempts -= 1
-                    print(f"{XSSColors.ERROR}Передача не удалась. Попыток осталось: {attempts}.{XSSColors.RESET}")
-            except ValueError:
-                print(f"{XSSColors.ERROR}Неверный формат. Введите два числа, разделенные пробелом.{XSSColors.RESET}")
+                    print(f"{XSSColors.ERROR}Сначала выберите метод{XSSColors.RESET}")
 
-        audio_system.play_sound("minigame_lose")
-        print(f"\n{XSSColors.ERROR}❌ Провал! Сообщение не было передано или обнаружено.{XSSColors.RESET}")
-        print(f"Правильные индексы зависели от случайности. Попробуйте еще раз, чтобы найти подходящие места.{XSSColors.RESET}")
+            elif cmd == "test":
+                if operation_state['configured']:
+                    result = self._test_transmission(operation_state, monitoring_systems)
+                    operation_state['test_passed'] = result['success']
+                    operation_state['detection_risk'] += result.get('risk_increase', 0)
+
+                    if result['success']:
+                        print(f"{XSSColors.SUCCESS}✅ Тест прошел успешно{XSSColors.RESET}")
+                    else:
+                        print(f"{XSSColors.WARNING}⚠️ {result['message']}{XSSColors.RESET}")
+                        if result.get('detected', False):
+                            operation_state['attempts'] += 1
+                            print(
+                                f"{XSSColors.ERROR}🚨 Обнаружение! Попыток осталось: {operation_state['max_attempts'] - operation_state['attempts']}{XSSColors.RESET}")
+                else:
+                    print(f"{XSSColors.ERROR}Сначала настройте метод{XSSColors.RESET}")
+
+            elif cmd == "transmit":
+                if operation_state['test_passed']:
+                    final_elapsed = time.time() - start_time
+                    result = self._final_transmission(operation_state, monitoring_systems, secret_data)
+                    return self._evaluate_operation(operation_state, mission, final_elapsed, result['success'],
+                                                    result.get('failure_reason', 'unknown'))
+                else:
+                    print(f"{XSSColors.ERROR}Необходимо провести успешный тест{XSSColors.RESET}")
+
+            elif cmd == "status":
+                self._show_detailed_status(operation_state, mission)
+
+            elif cmd == "abort":
+                print(f"{XSSColors.WARNING}Операция прервана{XSSColors.RESET}")
+                return False
+
+            elif cmd == "help":
+                self._show_operation_help()
+
+            else:
+                print(f"{XSSColors.ERROR}Неизвестная команда{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.ERROR}❌ Исчерпаны все попытки! Операция провалена.{XSSColors.RESET}")
         return False
+
+    def _configure_method(self, method, parameters):
+        """Настройка выбранного метода"""
+        method_configs = {
+            'lsb_image': {
+                'required_params': ['bit_depth', 'image_type'],
+                'valid_values': {
+                    'bit_depth': ['1', '2', '3'],
+                    'image_type': ['jpg', 'png', 'bmp']
+                },
+                'default_risk': 30
+            },
+            'text_spacing': {
+                'required_params': ['spacing_type', 'document_format'],
+                'valid_values': {
+                    'spacing_type': ['character', 'word', 'line'],
+                    'document_format': ['txt', 'doc', 'pdf']
+                },
+                'default_risk': 20
+            },
+            'dns_timing': {
+                'required_params': ['delay_pattern', 'domain_count'],
+                'valid_values': {
+                    'delay_pattern': ['fixed', 'variable', 'fibonacci'],
+                    'domain_count': ['3', '5', '10']
+                },
+                'default_risk': 40
+            },
+            'tcp_timestamp': {
+                'required_params': ['timestamp_field', 'encoding_rate'],
+                'valid_values': {
+                    'timestamp_field': ['options', 'sequence', 'ack'],
+                    'encoding_rate': ['1', '2', '4']
+                },
+                'default_risk': 50
+            },
+            'icmp_echo': {
+                'required_params': ['payload_size', 'interval'],
+                'valid_values': {
+                    'payload_size': ['32', '64', '128'],
+                    'interval': ['1', '2', '5']
+                },
+                'default_risk': 45
+            },
+            'file_slack': {
+                'required_params': ['file_type', 'cluster_size'],
+                'valid_values': {
+                    'file_type': ['exe', 'dll', 'sys'],
+                    'cluster_size': ['4096', '8192', '16384']
+                },
+                'default_risk': 25
+            },
+            'blockchain_meta': {
+                'required_params': ['blockchain', 'transaction_type'],
+                'valid_values': {
+                    'blockchain': ['bitcoin', 'ethereum', 'monero'],
+                    'transaction_type': ['standard', 'multisig', 'contract']
+                },
+                'default_risk': 15
+            },
+            'audio_spectral': {
+                'required_params': ['frequency_range', 'encoding_method'],
+                'valid_values': {
+                    'frequency_range': ['low', 'mid', 'high'],
+                    'encoding_method': ['lsb', 'phase', 'spread']
+                },
+                'default_risk': 35
+            }
+        }
+
+        config = method_configs.get(method)
+        if not config:
+            return {'success': False, 'message': 'Неизвестный метод'}
+
+        if not parameters:
+            # Показываем справку по настройке выбранного метода
+            method_help = {
+                'lsb_image': {
+                    'title': '🖼️ LSB STEGANOGRAPHY',
+                    'params': [
+                        ('bit_depth', ['1', '2', '3'], [
+                            '1 = 1 бит (максимальная скрытность, медленно)',
+                            '2 = 2 бита (баланс скрытности и скорости)',
+                            '3 = 3 бита (быстро, но заметно)'
+                        ]),
+                        ('image_type', ['jpg', 'png', 'bmp'], [
+                            'jpg = JPEG (сжатый, может исказить)',
+                            'png = PNG (без потерь, РЕКОМЕНДУЕТСЯ)',
+                            'bmp = BMP (большой, подозрительно)'
+                        ])
+                    ],
+                    'examples': ['configure 1 png', 'configure 2 png', 'configure 3 jpg']
+                },
+                'text_spacing': {
+                    'title': '📝 TEXT SPACING',
+                    'params': [
+                        ('spacing_type', ['character', 'word', 'line'], [
+                            'character = между символами (заметно)',
+                            'word = между словами (средне)',
+                            'line = между строками (НЕЗАМЕТНО)'
+                        ]),
+                        ('document_format', ['txt', 'doc', 'pdf'], [
+                            'txt = обычный текст (странно)',
+                            'doc = Word документ (нормально)',
+                            'pdf = PDF (профессионально)'
+                        ])
+                    ],
+                    'examples': ['configure line pdf', 'configure word doc', 'configure character txt']
+                },
+                'dns_timing': {
+                    'title': '🌐 DNS TIMING',
+                    'params': [
+                        ('delay_pattern', ['fixed', 'variable', 'fibonacci'], [
+                            'fixed = одинаковые (ЛЕГКО ОБНАРУЖИТЬ)',
+                            'variable = случайные (средняя защита)',
+                            'fibonacci = Фибоначчи (ТРУДНО ОБНАРУЖИТЬ)'
+                        ]),
+                        ('domain_count', ['3', '5', '10'], [
+                            '3 = быстро, паттерн заметен',
+                            '5 = ОПТИМАЛЬНО',
+                            '10 = скрытно, но медленно'
+                        ])
+                    ],
+                    'examples': ['configure fibonacci 5', 'configure variable 3', 'configure variable 10']
+                },
+                'tcp_timestamp': {
+                    'title': '📡 TCP TIMESTAMP',
+                    'params': [
+                        ('timestamp_field', ['options', 'sequence', 'ack'], [
+                            'options = поле опций (БЕЗОПАСНЕЕ)',
+                            'sequence = номер последовательности (рискованно)',
+                            'ack = номер подтверждения (ОЧЕНЬ РИСКОВАННО)'
+                        ]),
+                        ('encoding_rate', ['1', '2', '4'], [
+                            '1 = 1 бит/пакет (медленно, СКРЫТНО)',
+                            '2 = 2 бита/пакет (баланс)',
+                            '4 = 4 бита/пакет (быстро, ЗАМЕТНО)'
+                        ])
+                    ],
+                    'examples': ['configure options 1', 'configure options 2', 'configure sequence 4']
+                },
+                'icmp_echo': {
+                    'title': '📶 ICMP ECHO',
+                    'params': [
+                        ('payload_size', ['32', '64', '128'], [
+                            '32 = стандартный ping (НЕЗАМЕТНО)',
+                            '64 = немного больше обычного',
+                            '128 = ПОДОЗРИТЕЛЬНО большой'
+                        ]),
+                        ('interval', ['1', '2', '5'], [
+                            '1 = 1 сек (частые пинги, ПОДОЗРИТЕЛЬНО)',
+                            '2 = 2 сек (НОРМАЛЬНАЯ частота)',
+                            '5 = 5 сек (редко, незаметно, медленно)'
+                        ])
+                    ],
+                    'examples': ['configure 32 2', 'configure 32 5', 'configure 64 2']
+                },
+                'file_slack': {
+                    'title': '💾 FILE SLACK SPACE',
+                    'params': [
+                        ('file_type', ['exe', 'dll', 'sys'], [
+                            'exe = исполняемые (проверка антивирусом)',
+                            'dll = библиотеки (МЕНЕЕ ПОДОЗРИТЕЛЬНО)',
+                            'sys = системные (скрытно, но рискованно)'
+                        ]),
+                        ('cluster_size', ['4096', '8192', '16384'], [
+                            '4096 = 4KB (мало места, незаметно)',
+                            '8192 = 8KB (ОПТИМАЛЬНО)',
+                            '16384 = 16KB (много места, подозрительно)'
+                        ])
+                    ],
+                    'examples': ['configure dll 8192', 'configure sys 4096', 'configure exe 16384']
+                },
+                'blockchain_meta': {
+                    'title': '₿ BLOCKCHAIN METADATA',
+                    'params': [
+                        ('blockchain', ['bitcoin', 'ethereum', 'monero'], [
+                            'bitcoin = популярный, много транзакций',
+                            'ethereum = умные контракты (ГИБКОСТЬ)',
+                            'monero = анонимный (МАКСИМАЛЬНАЯ СКРЫТНОСТЬ)'
+                        ]),
+                        ('transaction_type', ['standard', 'multisig', 'contract'], [
+                            'standard = обычная (простая, дешевая)',
+                            'multisig = мультиподпись (БОЛЬШЕ МЕСТА)',
+                            'contract = смарт-контракт (максимум возможностей)'
+                        ])
+                    ],
+                    'examples': ['configure monero multisig', 'configure bitcoin standard',
+                                 'configure ethereum contract']
+                },
+                'audio_spectral': {
+                    'title': '🎵 AUDIO SPECTRAL',
+                    'params': [
+                        ('frequency_range', ['low', 'mid', 'high'], [
+                            'low = низкие частоты (МЕНЕЕ ЗАМЕТНО)',
+                            'mid = средние частоты (баланс)',
+                            'high = высокие частоты (заметно при анализе)'
+                        ]),
+                        ('encoding_method', ['lsb', 'phase', 'spread'], [
+                            'lsb = младшие биты (простой, может быть обнаружен)',
+                            'phase = фазовое кодирование (СЛОЖНЕЕ ОБНАРУЖИТЬ)',
+                            'spread = спектральное распределение (МАКСИМАЛЬНАЯ СКРЫТНОСТЬ)'
+                        ])
+                    ],
+                    'examples': ['configure low spread', 'configure mid phase', 'configure high lsb']
+                }
+            }
+
+            help_info = method_help.get(method)
+            if help_info:
+                print(f"\n{XSSColors.INFO}⚙️ НАСТРОЙКА: {help_info['title']}{XSSColors.RESET}")
+                print(
+                    f"Команда: {XSSColors.BRIGHT_GREEN}configure <{help_info['params'][0][0]}> <{help_info['params'][1][0]}>{XSSColors.RESET}")
+
+                for param_name, valid_values, descriptions in help_info['params']:
+                    print(f"\n{XSSColors.WARNING}{param_name}:{XSSColors.RESET}")
+                    for desc in descriptions:
+                        print(f"  {desc}")
+
+                print(f"\n{XSSColors.SUCCESS}Примеры команд:{XSSColors.RESET}")
+                for example in help_info['examples']:
+                    print(f"  {XSSColors.LIGHT_GRAY}{example}{XSSColors.RESET}")
+
+                return {'success': False, 'message': 'Выберите параметры из списка выше'}
+            else:
+                print(f"\n{XSSColors.ERROR}Справка для метода {method} недоступна{XSSColors.RESET}")
+                return {'success': False, 'message': 'Неизвестный метод'}
+
+        # Проверяем параметры
+        if len(parameters) < len(config['required_params']):
+            return {'success': False, 'message': 'Недостаточно параметров'}
+
+        for i, param_value in enumerate(parameters[:len(config['required_params'])]):
+            param_name = config['required_params'][i]
+            if param_value not in config['valid_values'][param_name]:
+                return {'success': False, 'message': f'Неверное значение для {param_name}'}
+
+        # Рассчитываем риск на основе выбранных параметров
+        risk = config['default_risk']
+
+        # Некоторые параметры увеличивают/уменьшают риск
+        risk_modifiers = {
+            'bit_depth': {'1': -10, '2': 0, '3': +10},
+            'spacing_type': {'character': +5, 'word': 0, 'line': -5},
+            'delay_pattern': {'fixed': +15, 'variable': 0, 'fibonacci': -10},
+            'payload_size': {'32': -5, '64': 0, '128': +10}
+        }
+
+        for i, param_value in enumerate(parameters[:len(config['required_params'])]):
+            param_name = config['required_params'][i]
+            if param_name in risk_modifiers and param_value in risk_modifiers[param_name]:
+                risk += risk_modifiers[param_name][param_value]
+
+        risk = max(10, min(90, risk))  # Ограничиваем риск
+
+        return {'success': True, 'risk': risk}
+
+    def _test_transmission(self, operation_state, monitoring_systems):
+        """Тестовая передача данных"""
+        method = operation_state['selected_method']
+        base_risk = operation_state['detection_risk']
+
+        print(f"\n{XSSColors.INFO}🧪 Запуск тестовой передачи...{XSSColors.RESET}")
+        time.sleep(random.uniform(1, 2))
+
+        # Проверяем каждую систему мониторинга
+        detected = False
+        total_suspicion = 0
+
+        for system in monitoring_systems:
+            detection_chance = self._calculate_detection_chance(method, system, base_risk)
+
+            if random.random() * 100 < detection_chance:
+                print(f"{XSSColors.ERROR}🚨 {system['name']}: Обнаружена аномалия!{XSSColors.RESET}")
+                detected = True
+                break
+            else:
+                suspicion_increase = random.randint(1, 5)
+                total_suspicion += suspicion_increase
+                print(f"{XSSColors.SUCCESS}✅ {system['name']}: Трафик выглядит нормальным{XSSColors.RESET}")
+
+        if detected:
+            return {
+                'success': False,
+                'detected': True,
+                'message': 'Тестовая передача обнаружена системами мониторинга',
+                'risk_increase': 20
+            }
+        else:
+            print(f"{XSSColors.SUCCESS}✅ Тест прошел успешно. Данные переданы незаметно.{XSSColors.RESET}")
+            return {
+                'success': True,
+                'message': 'Тестовая передача успешна',
+                'risk_increase': total_suspicion
+            }
+
+    def _final_transmission(self, operation_state, monitoring_systems, secret_data):
+        """Финальная передача секретных данных"""
+        method = operation_state['selected_method']
+        base_risk = operation_state['detection_risk']
+
+        print(f"\n{XSSColors.WARNING}🚀 НАЧАЛО ПЕРЕДАЧИ СЕКРЕТНЫХ ДАННЫХ{XSSColors.RESET}")
+        print(f"Метод: {self._get_method_info(method)['name']}")
+        print(f"Размер данных: {len(secret_data)} байт")
+
+        time.sleep(2)
+
+        # Имитация процесса передачи
+        steps = [
+            "Инициализация канала связи...",
+            "Подготовка данных для сокрытия...",
+            "Внедрение данных в носитель...",
+            "Проверка целостности...",
+            "Отправка данных..."
+        ]
+
+        for step in steps:
+            print(f"{XSSColors.INFO}📡 {step}{XSSColors.RESET}")
+            time.sleep(random.uniform(0.5, 1.5))
+
+        # Финальная проверка обнаружения (более строгая)
+        detected = False
+        detection_details = []
+
+        for system in monitoring_systems:
+            # Увеличиваем шанс обнаружения для финальной передачи
+            detection_chance = self._calculate_detection_chance(method, system, base_risk) * 1.3
+
+            if random.random() * 100 < detection_chance:
+                detected = True
+                detection_details.append({
+                    'system': system['name'],
+                    'method': random.choice(system['detection_methods']),
+                    'confidence': random.randint(75, 95)
+                })
+                break
+
+        if detected:
+            print(f"\n{XSSColors.DANGER}🚨 ОБНАРУЖЕНИЕ! ОПЕРАЦИЯ КОМПРОМЕТИРОВАНА!{XSSColors.RESET}")
+            for detail in detection_details:
+                print(f"   {detail['system']}: {detail['method']} (уверенность: {detail['confidence']}%)")
+
+            return {
+                'success': False,
+                'failure_reason': 'detected',
+                'detection_details': detection_details
+            }
+        else:
+            print(f"\n{XSSColors.SUCCESS}🎉 ДАННЫЕ ПЕРЕДАНЫ УСПЕШНО!{XSSColors.RESET}")
+            return {'success': True}
+
+    def _calculate_detection_chance(self, method, system, base_risk):
+        """Рассчитывает шанс обнаружения метода системой"""
+        method_info = self._get_method_info(method)
+
+        # Базовый шанс обнаружения системы
+        base_detection = system['effectiveness']
+
+        # Модификатор на основе скрытности метода
+        stealth_modifier = {
+            'very_low': 30,
+            'low': 15,
+            'medium': 0,
+            'high': -20,
+            'very_high': -35
+        }
+
+        # Совместимость метода с типом системы
+        compatibility_bonus = 0
+        if system['type'] == 'stego_detection' and method in ['lsb_image', 'audio_spectral']:
+            compatibility_bonus = 25  # Стего-сканер лучше детектирует стеганографию
+        elif system['type'] == 'network_analysis' and method in ['dns_timing', 'tcp_timestamp', 'icmp_echo']:
+            compatibility_bonus = 20  # Сетевой анализ лучше детектирует сетевые каналы
+        elif system['type'] == 'behavior_analysis' and method in ['file_slack', 'blockchain_meta']:
+            compatibility_bonus = 15  # Поведенческий анализ детектирует необычную файловую активность
+
+        stealth_penalty = stealth_modifier.get(method_info['stealth'], 0)
+
+        final_chance = base_detection + stealth_penalty + compatibility_bonus + base_risk - 50
+        return max(5, min(95, final_chance))
+
+    def _show_operation_status(self, operation_state, remaining_time):
+        """Показывает статус операции"""
+        method_name = "Не выбран"
+        if operation_state['selected_method']:
+            method_name = self._get_method_info(operation_state['selected_method'])['name']
+
+        status_icons = {
+            'selected_method': "✅" if operation_state['selected_method'] else "❌",
+            'configured': "✅" if operation_state['configured'] else "❌",
+            'test_passed': "✅" if operation_state['test_passed'] else "❌"
+        }
+
+        risk_color = self._get_risk_color_by_level(operation_state['detection_risk'])
+
+        print(f"\n{XSSColors.INFO}📊 СТАТУС ОПЕРАЦИИ:{XSSColors.RESET}")
+        print(f"   Метод: {status_icons['selected_method']} {method_name}")
+        print(f"   Настройка: {status_icons['configured']}")
+        print(f"   Тест: {status_icons['test_passed']}")
+        print(f"   Риск обнаружения: {risk_color}{operation_state['detection_risk']}%{XSSColors.RESET}")
+        print(f"   Попыток осталось: {operation_state['max_attempts'] - operation_state['attempts']}")
+        print(f"   ⏰ Время: {remaining_time:.0f}s")
+
+    def _show_detailed_status(self, operation_state, mission):
+        """Показывает детальный статус операции"""
+        print(f"\n{XSSColors.HEADER}━━━━━━━━━━━━━━━━ ДЕТАЛЬНЫЙ СТАТУС ━━━━━━━━━━━━━━━━{XSSColors.RESET}")
+
+        # Статус выбранного метода
+        if operation_state['selected_method']:
+            method_info = self._get_method_info(operation_state['selected_method'])
+            print(f"\n{XSSColors.WARNING}🔧 ВЫБРАННЫЙ МЕТОД:{XSSColors.RESET}")
+            print(f"   Название: {method_info['name']}")
+            print(f"   Скрытность: {self._get_stealth_rating(method_info['stealth'])}")
+            print(f"   Пропускная способность: {method_info['capacity']}")
+            print(f"   Описание: {method_info['description']}")
+
+        # Анализ угроз
+        print(f"\n{XSSColors.ERROR}⚠️ АНАЛИЗ УГРОЗ:{XSSColors.RESET}")
+        for system in mission['monitoring_systems']:
+            if operation_state['selected_method']:
+                threat_level = self._calculate_detection_chance(
+                    operation_state['selected_method'],
+                    system,
+                    operation_state['detection_risk']
+                )
+                threat_color = self._get_risk_color_by_level(threat_level)
+                print(f"   {system['name']}: {threat_color}{threat_level:.0f}% угроза{XSSColors.RESET}")
+            else:
+                print(f"   {system['name']}: Анализ недоступен")
+
+        # Рекомендации
+        print(f"\n{XSSColors.SUCCESS}💡 РЕКОМЕНДАЦИИ:{XSSColors.RESET}")
+        if not operation_state['selected_method']:
+            print(f"   • Выберите метод сокрытия данных")
+        elif not operation_state['configured']:
+            print(f"   • Настройте выбранный метод")
+        elif not operation_state['test_passed']:
+            print(f"   • Проведите тестовую передачу")
+        else:
+            print(f"   • Готово к передаче секретных данных")
+
+        if operation_state['detection_risk'] > 60:
+            print(f"   • Высокий риск обнаружения - рассмотрите другой метод")
+
+    def _evaluate_operation(self, operation_state, mission, time_taken, success, failure_reason):
+        """Оценивает результаты операции"""
+        print(f"\n{XSSColors.HEADER}━━━━━━━━━━━━━━━━ РЕЗУЛЬТАТЫ ОПЕРАЦИИ ━━━━━━━━━━━━━━━━{XSSColors.RESET}")
+
+        # Подсчет очков
+        base_score = 100 if success else 0
+        time_bonus = max(0, 50 - int(time_taken / 6))  # Бонус за скорость
+        stealth_bonus = max(0, 100 - operation_state['detection_risk'])  # Бонус за скрытность
+        attempts_penalty = (operation_state['attempts']) * 15  # Штраф за попытки
+
+        total_score = base_score + time_bonus + stealth_bonus - attempts_penalty
+
+        print(f"\n{XSSColors.INFO}📊 ПОДСЧЕТ ОЧКОВ:{XSSColors.RESET}")
+        if success:
+            print(f"   Успешная передача: +{base_score}")
+        if time_bonus > 0:
+            print(f"   Бонус за скорость: +{time_bonus}")
+        print(f"   Бонус за скрытность: +{stealth_bonus}")
+        if attempts_penalty > 0:
+            print(f"   Штраф за обнаружения: -{attempts_penalty}")
+
+        print(f"\n{XSSColors.BRIGHT_GREEN}🏆 ИТОГО: {total_score} очков{XSSColors.RESET}")
+
+        if success:
+            self._show_operation_success(mission, operation_state, total_score, time_taken)
+        else:
+            self._show_operation_failure(mission, failure_reason, total_score)
+
+        return success
+
+    def _show_operation_success(self, mission, operation_state, score, time_taken):
+        """Показывает экран успешной операции"""
+        audio_system.play_sound("minigame_win")
+
+        print(f"\n{XSSColors.SUCCESS}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.SUCCESS}║                🎉 ОПЕРАЦИЯ ВЫПОЛНЕНА! 🎉                     ║{XSSColors.RESET}")
+        print(f"{XSSColors.SUCCESS}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
+
+        secret_data = mission['secret_data']
+        method_info = self._get_method_info(operation_state['selected_method'])
+
+        print(f"\n{XSSColors.SUCCESS}📡 Секретные данные переданы успешно!{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}🔒 Тип данных: {secret_data['description']}{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}📦 Размер: {secret_data['bytes']} байт{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}🛠️ Метод: {method_info['name']}{XSSColors.RESET}")
+        print(f"{XSSColors.INFO}⏱️ Время операции: {time_taken:.1f} секунд{XSSColors.RESET}")
+        print(f"{XSSColors.BRIGHT_GREEN}🏆 Итоговый счет: {score} очков{XSSColors.RESET}")
+
+        # Определяем ранг оператора
+        if score >= 180 and time_taken < 60:
+            rank = f"{XSSColors.DANGER}🌟 МАСТЕР СТЕГАНОГРАФИИ{XSSColors.RESET}"
+        elif score >= 150:
+            rank = f"{XSSColors.SUCCESS}💎 ЭКСПЕРТ ПО СКРЫТЫМ КАНАЛАМ{XSSColors.RESET}"
+        elif score >= 120:
+            rank = f"{XSSColors.WARNING}🔧 СПЕЦИАЛИСТ ПО СОКРЫТИЮ{XSSColors.RESET}"
+        elif score >= 90:
+            rank = f"{XSSColors.INFO}🎯 АГЕНТ-НОВИЧОК{XSSColors.RESET}"
+        else:
+            rank = f"{XSSColors.LIGHT_GRAY}📚 СТАЖЕР{XSSColors.RESET}"
+
+        print(f"\n🏅 Ваш ранг: {rank}")
+
+        # Показываем какие системы были обмануты
+        print(f"\n{XSSColors.SUCCESS}🕵️ ОБМАНУТЫЕ СИСТЕМЫ:{XSSColors.RESET}")
+        for system in mission['monitoring_systems']:
+            print(f"   ✅ {system['name']} - не обнаружил передачу")
+
+        print(f"\n{XSSColors.INFO}📈 РАЗВИТЫЕ НАВЫКИ:{XSSColors.RESET}")
+        skills = [
+            "Техники стеганографии",
+            "Обход систем мониторинга",
+            "Скрытная передача данных",
+            "Анализ сетевого трафика",
+            "Противодействие детектированию"
+        ]
+        for skill in skills:
+            print(f"   • {skill}")
+
+    def _show_operation_failure(self, mission, failure_reason, score):
+        """Показывает экран неудачной операции"""
+        audio_system.play_sound("minigame_lose")
+
+        print(f"\n{XSSColors.ERROR}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.ERROR}║                    ❌ ОПЕРАЦИЯ ПРОВАЛЕНА ❌                  ║{XSSColors.RESET}")
+        print(f"{XSSColors.ERROR}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
+
+        failure_messages = {
+            'detected': "🚨 Передача данных обнаружена системами мониторинга",
+            'timeout': "⏰ Время операции истекло",
+            'unknown': "❓ Неизвестная ошибка операции"
+        }
+
+        message = failure_messages.get(failure_reason, failure_messages['unknown'])
+        print(f"\n{XSSColors.ERROR}{message}{XSSColors.RESET}")
+        print(f"{XSSColors.ERROR}📉 Итоговый счет: {score} очков{XSSColors.RESET}")
+
+        # Показываем последствия провала
+        print(f"\n{XSSColors.WARNING}⚠️ ПОСЛЕДСТВИЯ ПРОВАЛА:{XSSColors.RESET}")
+        consequences = [
+            "Компрометация агентской сети",
+            "Усиление систем безопасности",
+            "Расследование службы безопасности",
+            "Потеря доверия руководства"
+        ]
+
+        for consequence in random.sample(consequences, 2):
+            print(f"   • {consequence}")
+
+        print(f"\n{XSSColors.INFO}💡 РЕКОМЕНДАЦИИ ДЛЯ СЛЕДУЮЩЕЙ ОПЕРАЦИИ:{XSSColors.RESET}")
+        recommendations = [
+            "Изучите характеристики систем мониторинга",
+            "Выбирайте методы с более высокой скрытностью",
+            "Тщательно настраивайте параметры передачи",
+            "Проводите больше тестов перед финальной передачей",
+            "Учитывайте временные ограничения операции"
+        ]
+
+        for rec in recommendations[:3]:
+            print(f"   • {rec}")
+
+    def _show_operation_help(self):
+        """Показывает детальную справку по операциям"""
+        print(f"\n{XSSColors.HEADER}╔══════════════════════════════════════════════════════════════╗{XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}                📖 РУКОВОДСТВО АГЕНТА ПО СКРЫТЫМ КАНАЛАМ      {XSSColors.RESET}")
+        print(f"{XSSColors.HEADER}╚══════════════════════════════════════════════════════════════╝{XSSColors.RESET}")
+
+        print(f"\n{XSSColors.WARNING}🎯 ЦЕЛЬ МИССИИ:{XSSColors.RESET}")
+        print(f"   Передать секретные данные через контролируемую сеть так, чтобы")
+        print(f"   системы мониторинга не обнаружили факт передачи конфиденциальной")
+        print(f"   информации. Используйте техники стеганографии и скрытых каналов.")
+
+        print(f"\n{XSSColors.SUCCESS}📋 ОСНОВНЫЕ КОМАНДЫ:{XSSColors.RESET}")
+        print(f"   {XSSColors.BRIGHT_GREEN}use <method_id>{XSSColors.RESET}")
+        print(f"      Выбрать метод сокрытия данных из доступного списка")
+        print(f"      Пример: {XSSColors.LIGHT_GRAY}use 1{XSSColors.RESET} (выбрать LSB Steganography)")
+        print(f"      Пример: {XSSColors.LIGHT_GRAY}use 3{XSSColors.RESET} (выбрать DNS Timing)")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}configure <параметр1> <параметр2> ...{XSSColors.RESET}")
+        print(f"      Настроить параметры выбранного метода")
+        print(f"      Каждый метод имеет свои уникальные настройки")
+        print(f"      Пример: {XSSColors.LIGHT_GRAY}configure 2 png{XSSColors.RESET} (LSB: 2 бита, PNG)")
+        print(
+            f"      Пример: {XSSColors.LIGHT_GRAY}configure variable 5{XSSColors.RESET} (DNS: переменные задержки, 5 доменов)")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}test{XSSColors.RESET}")
+        print(f"      Провести тестовую передачу перед основной операцией")
+        print(f"      Позволяет оценить риск обнаружения без компрометации")
+        print(f"      ⚠️ Обязательно перед финальной передачей!")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}transmit{XSSColors.RESET}")
+        print(f"      Передать секретные данные (только после успешного теста)")
+        print(f"      Финальная операция - нет возможности отменить")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}status{XSSColors.RESET}")
+        print(f"      Показать детальный статус операции и анализ угроз")
+        print(f"      Включает: выбранный метод, настройки, риски, рекомендации")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}abort{XSSColors.RESET}")
+        print(f"      Прервать операцию (засчитывается как провал)")
+
+        print(f"\n{XSSColors.WARNING}🔧 ПОШАГОВАЯ ПРОЦЕДУРА:{XSSColors.RESET}")
+        print(f"   {XSSColors.BRIGHT_GREEN}1. АНАЛИЗ ОБСТАНОВКИ{XSSColors.RESET}")
+        print(f"      • Изучите системы мониторинга в брифинге")
+        print(f"      • Определите их типы и эффективность")
+        print(f"      • Оцените доступный легитимный трафик")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}2. ВЫБОР МЕТОДА{XSSColors.RESET}")
+        print(f"      • Выберите метод командой {XSSColors.BRIGHT_GREEN}use <id>{XSSColors.RESET}")
+        print(f"      • Учитывайте совместимость с системами мониторинга")
+        print(f"      • Балансируйте скрытность и пропускную способность")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}3. НАСТРОЙКА ПАРАМЕТРОВ{XSSColors.RESET}")
+        print(f"      • Используйте {XSSColors.BRIGHT_GREEN}configure{XSSColors.RESET} без параметров для справки")
+        print(f"      • Настройте метод для минимизации риска обнаружения")
+        print(f"      • Более консервативные настройки = меньше риска")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}4. ТЕСТИРОВАНИЕ{XSSColors.RESET}")
+        print(f"      • Обязательно выполните {XSSColors.BRIGHT_GREEN}test{XSSColors.RESET} перед передачей")
+        print(f"      • При неудаче - измените метод или настройки")
+        print(f"      • Каждая неудача увеличивает подозрительность")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}5. ФИНАЛЬНАЯ ПЕРЕДАЧА{XSSColors.RESET}")
+        print(f"      • Выполните {XSSColors.BRIGHT_GREEN}transmit{XSSColors.RESET} только после успешного теста")
+        print(f"      • Следите за оставшимся временем")
+        print(f"      • При обнаружении - миссия провалена")
+
+        print(f"\n{XSSColors.INFO}🛠️ ДЕТАЛЬНОЕ ОПИСАНИЕ ВСЕХ ПАРАМЕТРОВ:{XSSColors.RESET}")
+
+        print(f"\n   {XSSColors.INFO}🖼️ LSB STEGANOGRAPHY{XSSColors.RESET}")
+        print(f"      Команда: {XSSColors.BRIGHT_GREEN}configure <bit_depth> <image_type>{XSSColors.RESET}")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}bit_depth (глубина битов):{XSSColors.RESET}")
+        print(f"        1 = 1 младший бит (МАКСИМАЛЬНАЯ СКРЫТНОСТЬ, медленно)")
+        print(f"        2 = 2 младших бита (баланс скрытности и скорости)")
+        print(f"        3 = 3 младших бита (быстро, но более заметно)")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}image_type (формат изображения):{XSSColors.RESET}")
+        print(f"        jpg = JPEG (сжатый, может исказить данные)")
+        print(f"        png = PNG (без потерь, РЕКОМЕНДУЕТСЯ)")
+        print(f"        bmp = BMP (большой размер, подозрительно)")
+        print(f"      ")
+        print(f"      {XSSColors.SUCCESS}Примеры:{XSSColors.RESET}")
+        print(f"        {XSSColors.LIGHT_GRAY}configure 1 png{XSSColors.RESET} - максимальная скрытность")
+        print(f"        {XSSColors.LIGHT_GRAY}configure 2 png{XSSColors.RESET} - рекомендуемые настройки")
+        print(f"        {XSSColors.LIGHT_GRAY}configure 3 jpg{XSSColors.RESET} - быстро, но рискованно")
+
+        print(f"\n   {XSSColors.INFO}📝 TEXT SPACING{XSSColors.RESET}")
+        print(f"      Команда: {XSSColors.BRIGHT_GREEN}configure <spacing_type> <document_format>{XSSColors.RESET}")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}spacing_type (тип интервалов):{XSSColors.RESET}")
+        print(f"        character = между символами (заметно при чтении)")
+        print(f"        word = между словами (средняя заметность)")
+        print(f"        line = между строками (НЕЗАМЕТНО, рекомендуется)")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}document_format (формат документа):{XSSColors.RESET}")
+        print(f"        txt = обычный текст (может выглядеть странно)")
+        print(f"        doc = Word документ (нормально выглядит)")
+        print(f"        pdf = PDF файл (профессионально)")
+        print(f"      ")
+        print(f"      {XSSColors.SUCCESS}Примеры:{XSSColors.RESET}")
+        print(f"        {XSSColors.LIGHT_GRAY}configure line pdf{XSSColors.RESET} - самый незаметный")
+        print(f"        {XSSColors.LIGHT_GRAY}configure word doc{XSSColors.RESET} - хороший баланс")
+
+        print(f"\n   {XSSColors.INFO}🌐 DNS TIMING{XSSColors.RESET}")
+        print(f"      Команда: {XSSColors.BRIGHT_GREEN}configure <delay_pattern> <domain_count>{XSSColors.RESET}")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}delay_pattern (паттерн задержек):{XSSColors.RESET}")
+        print(f"        fixed = одинаковые интервалы (ЛЕГКО ОБНАРУЖИТЬ)")
+        print(f"        variable = случайные интервалы (средняя защита)")
+        print(f"        fibonacci = последовательность Фибоначчи (ТРУДНО ОБНАРУЖИТЬ)")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}domain_count (количество доменов):{XSSColors.RESET}")
+        print(f"        3 = 3 домена (быстро, но паттерн заметен)")
+        print(f"        5 = 5 доменов (ОПТИМАЛЬНО)")
+        print(f"        10 = 10 доменов (очень скрытно, но медленно)")
+        print(f"      ")
+        print(f"      {XSSColors.SUCCESS}Примеры:{XSSColors.RESET}")
+        print(f"        {XSSColors.LIGHT_GRAY}configure fibonacci 5{XSSColors.RESET} - лучший вариант")
+        print(f"        {XSSColors.LIGHT_GRAY}configure variable 3{XSSColors.RESET} - быстрый вариант")
+
+        print(f"\n   {XSSColors.INFO}📡 TCP TIMESTAMP{XSSColors.RESET}")
+        print(f"      Команда: {XSSColors.BRIGHT_GREEN}configure <timestamp_field> <encoding_rate>{XSSColors.RESET}")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}timestamp_field (поле для сокрытия):{XSSColors.RESET}")
+        print(f"        options = в поле опций TCP (БЕЗОПАСНЕЕ)")
+        print(f"        sequence = в номере последовательности (рискованно)")
+        print(f"        ack = в номере подтверждения (ОЧЕНЬ РИСКОВАННО)")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}encoding_rate (скорость кодирования):{XSSColors.RESET}")
+        print(f"        1 = 1 бит на пакет (медленно, но СКРЫТНО)")
+        print(f"        2 = 2 бита на пакет (баланс)")
+        print(f"        4 = 4 бита на пакет (быстро, но ЗАМЕТНО)")
+        print(f"      ")
+        print(f"      {XSSColors.SUCCESS}Примеры:{XSSColors.RESET}")
+        print(f"        {XSSColors.LIGHT_GRAY}configure options 1{XSSColors.RESET} - самый безопасный")
+        print(f"        {XSSColors.LIGHT_GRAY}configure options 2{XSSColors.RESET} - рекомендуемый")
+
+        print(f"\n   {XSSColors.INFO}📶 ICMP ECHO{XSSColors.RESET}")
+        print(f"      Команда: {XSSColors.BRIGHT_GREEN}configure <payload_size> <interval>{XSSColors.RESET}")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}payload_size (размер данных в пакете):{XSSColors.RESET}")
+        print(f"        32 = 32 байта (стандартный ping, НЕЗАМЕТНО)")
+        print(f"        64 = 64 байта (немного больше обычного)")
+        print(f"        128 = 128 байт (ПОДОЗРИТЕЛЬНО большой)")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}interval (интервал между пакетами в сек.):{XSSColors.RESET}")
+        print(f"        1 = 1 секунда (частые пинги, ПОДОЗРИТЕЛЬНО)")
+        print(f"        2 = 2 секунды (НОРМАЛЬНАЯ частота)")
+        print(f"        5 = 5 секунд (редко, незаметно, но медленно)")
+        print(f"      ")
+        print(f"      {XSSColors.SUCCESS}Примеры:{XSSColors.RESET}")
+        print(f"        {XSSColors.LIGHT_GRAY}configure 32 2{XSSColors.RESET} - стандартные настройки")
+        print(f"        {XSSColors.LIGHT_GRAY}configure 32 5{XSSColors.RESET} - максимально незаметно")
+
+        print(f"\n   {XSSColors.INFO}💾 FILE SLACK SPACE{XSSColors.RESET}")
+        print(f"      Команда: {XSSColors.BRIGHT_GREEN}configure <file_type> <cluster_size>{XSSColors.RESET}")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}file_type (тип файла):{XSSColors.RESET}")
+        print(f"        exe = исполняемые файлы (могут проверяться антивирусом)")
+        print(f"        dll = библиотеки (МЕНЕЕ ПОДОЗРИТЕЛЬНО)")
+        print(f"        sys = системные файлы (очень скрытно, но рискованно)")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}cluster_size (размер кластера диска):{XSSColors.RESET}")
+        print(f"        4096 = 4KB кластеры (мало места, но незаметно)")
+        print(f"        8192 = 8KB кластеры (ОПТИМАЛЬНО)")
+        print(f"        16384 = 16KB кластеры (много места, но подозрительно)")
+        print(f"      ")
+        print(f"      {XSSColors.SUCCESS}Примеры:{XSSColors.RESET}")
+        print(f"        {XSSColors.LIGHT_GRAY}configure dll 8192{XSSColors.RESET} - лучший выбор")
+        print(f"        {XSSColors.LIGHT_GRAY}configure sys 4096{XSSColors.RESET} - максимальная скрытность")
+
+        print(f"\n   {XSSColors.INFO}₿ BLOCKCHAIN METADATA{XSSColors.RESET}")
+        print(f"      Команда: {XSSColors.BRIGHT_GREEN}configure <blockchain> <transaction_type>{XSSColors.RESET}")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}blockchain (тип блокчейна):{XSSColors.RESET}")
+        print(f"        bitcoin = Bitcoin (популярный, много транзакций)")
+        print(f"        ethereum = Ethereum (умные контракты, ГИБКОСТЬ)")
+        print(f"        monero = Monero (анонимный, МАКСИМАЛЬНАЯ СКРЫТНОСТЬ)")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}transaction_type (тип транзакции):{XSSColors.RESET}")
+        print(f"        standard = обычная транзакция (простая, дешевая)")
+        print(f"        multisig = мультиподпись (БОЛЬШЕ МЕСТА для данных)")
+        print(f"        contract = смарт-контракт (максимум возможностей)")
+        print(f"      ")
+        print(f"      {XSSColors.SUCCESS}Примеры:{XSSColors.RESET}")
+        print(f"        {XSSColors.LIGHT_GRAY}configure monero multisig{XSSColors.RESET} - максимальная анонимность")
+        print(f"        {XSSColors.LIGHT_GRAY}configure bitcoin standard{XSSColors.RESET} - простой и дешевый")
+
+        print(f"\n   {XSSColors.INFO}🎵 AUDIO SPECTRAL{XSSColors.RESET}")
+        print(f"      Команда: {XSSColors.BRIGHT_GREEN}configure <frequency_range> <encoding_method>{XSSColors.RESET}")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}frequency_range (частотный диапазон):{XSSColors.RESET}")
+        print(f"        low = низкие частоты (МЕНЕЕ ЗАМЕТНО)")
+        print(f"        mid = средние частоты (баланс)")
+        print(f"        high = высокие частоты (заметно при анализе)")
+        print(f"      ")
+        print(f"      {XSSColors.WARNING}encoding_method (метод кодирования):{XSSColors.RESET}")
+        print(f"        lsb = младшие биты (простой, может быть обнаружен)")
+        print(f"        phase = фазовое кодирование (СЛОЖНЕЕ ОБНАРУЖИТЬ)")
+        print(f"        spread = спектральное распределение (МАКСИМАЛЬНАЯ СКРЫТНОСТЬ)")
+        print(f"      ")
+        print(f"      {XSSColors.SUCCESS}Примеры:{XSSColors.RESET}")
+        print(f"        {XSSColors.LIGHT_GRAY}configure low spread{XSSColors.RESET} - самый скрытный")
+        print(f"        {XSSColors.LIGHT_GRAY}configure mid phase{XSSColors.RESET} - хороший баланс")
+
+        print(f"\n{XSSColors.ERROR}⚠️ СИСТЕМА РИСКОВ:{XSSColors.RESET}")
+        print(f"   {XSSColors.WARNING}Риск обнаружения рассчитывается по формуле:{XSSColors.RESET}")
+        print(f"   • Базовая эффективность системы: 60-95%")
+        print(f"   • Модификатор скрытности метода: -35% до +30%")
+        print(f"   • Бонус совместимости системы: +0% до +25%")
+        print(f"   • Влияние ваших настроек: ±15%")
+        print(f"   • Накопленный риск от предыдущих действий")
+
+        print(f"\n   {XSSColors.WARNING}Критические пороги:{XSSColors.RESET}")
+        print(f"   • {XSSColors.SUCCESS}0-30%{XSSColors.RESET} - Низкий риск (безопасно)")
+        print(f"   • {XSSColors.WARNING}31-50%{XSSColors.RESET} - Умеренный риск (осторожно)")
+        print(f"   • {XSSColors.ERROR}51-70%{XSSColors.RESET} - Высокий риск (опасно)")
+        print(f"   • {XSSColors.DANGER}71%+{XSSColors.RESET} - Критический риск (почти гарантированное обнаружение)")
+
+        print(f"\n{XSSColors.SUCCESS}💡 СТРАТЕГИЧЕСКИЕ СОВЕТЫ:{XSSColors.RESET}")
+        print(f"   {XSSColors.BRIGHT_GREEN}📊 АНАЛИЗ СИСТЕМ МОНИТОРИНГА:{XSSColors.RESET}")
+        print(f"   • Firewall DPI → избегайте сетевых методов (DNS, TCP, ICMP)")
+        print(f"   • Steganography Scanner → избегайте LSB и Audio")
+        print(f"   • Network Analyzer → избегайте всех сетевых каналов")
+        print(f"   • Behavioral Monitor → избегайте необычных файловых операций")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}🎯 ВЫБОР МЕТОДА ПО СИТУАЦИИ:{XSSColors.RESET}")
+        print(f"   • Много стего-сканеров → используйте File Slack или Blockchain")
+        print(f"   • Сильный сетевой мониторинг → используйте Text Spacing")
+        print(f"   • Ограниченное время → выбирайте LSB или Audio (быстрые)")
+        print(f"   • Максимальная скрытность → только Blockchain или File Slack")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}⚙️ ОПТИМИЗАЦИЯ НАСТРОЕК:{XSSColors.RESET}")
+        print(f"   • Меньше битов/частота = меньше риска")
+        print(f"   • Переменные паттерны лучше фиксированных")
+        print(f"   • Стандартные форматы менее подозрительны")
+        print(f"   • Больше доменов/узлов = больше маскировка")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}⏰ УПРАВЛЕНИЕ ВРЕМЕНЕМ:{XSSColors.RESET}")
+        print(f"   • Следите за таймером - операция ограничена по времени")
+        print(f"   • Быстрая настройка дает бонус к очкам")
+        print(f"   • При критическом времени используйте знакомые методы")
+
+        print(f"\n{XSSColors.INFO}🏆 СИСТЕМА ОЦЕНКИ:{XSSColors.RESET}")
+        print(f"   {XSSColors.BRIGHT_GREEN}Очки начисляются за:{XSSColors.RESET}")
+        print(f"   • Успешную передачу: +100 очков")
+        print(f"   • Скорость операции: до +50 очков")
+        print(f"   • Низкий риск обнаружения: до +100 очков")
+        print(f"   • Штраф за неудачи: -15 очков за попытку")
+
+        print(f"\n   {XSSColors.BRIGHT_GREEN}Ранги агентов:{XSSColors.RESET}")
+        print(f"   • 180+ очков: 🌟 Мастер стеганографии")
+        print(f"   • 150+ очков: 💎 Эксперт по скрытым каналам")
+        print(f"   • 120+ очков: 🔧 Специалист по сокрытию")
+        print(f"   • 90+ очков: 🎯 Агент-новичок")
+        print(f"   • <90 очков: 📚 Стажер")
+
+        print(f"\n{XSSColors.WARNING}🚨 ЧАСТЫЕ ОШИБКИ НОВИЧКОВ:{XSSColors.RESET}")
+        print(f"   ❌ Игнорирование типов систем мониторинга")
+        print(f"   ❌ Попытка передачи без тестирования")
+        print(f"   ❌ Использование максимальных настроек (высокий риск)")
+        print(f"   ❌ Выбор неподходящего метода для ситуации")
+        print(f"   ❌ Невнимание к накапливающемуся риску")
+
+        print(f"\n{XSSColors.SUCCESS}✅ ПРИЗНАКИ МАСТЕРСТВА:{XSSColors.RESET}")
+        print(f"   ✅ Анализ систем перед выбором метода")
+        print(f"   ✅ Консервативные настройки для снижения риска")
+        print(f"   ✅ Обязательное тестирование перед передачей")
+        print(f"   ✅ Адаптация стратегии под каждую миссию")
+        print(f"   ✅ Баланс между скоростью и безопасностью")
+
+        print(f"\n{XSSColors.BRIGHT_GREEN}🎮 ПРИМЕР УСПЕШНОЙ ОПЕРАЦИИ:{XSSColors.RESET}")
+        print(f"   {XSSColors.LIGHT_GRAY}# Ситуация: 2 стего-сканера, 1 сетевой анализатор{XSSColors.RESET}")
+        print(
+            f"   {XSSColors.LIGHT_GRAY}use 6{XSSColors.RESET}                     # File Slack (избегаем стего-сканеров)")
+        print(f"   {XSSColors.LIGHT_GRAY}configure dll 8192{XSSColors.RESET}       # Консервативные настройки")
+        print(f"   {XSSColors.LIGHT_GRAY}test{XSSColors.RESET}                      # Проверяем безопасность")
+        print(f"   {XSSColors.LIGHT_GRAY}transmit{XSSColors.RESET}                  # Передаем данные")
+        print(f"   {XSSColors.SUCCESS}# Результат: 165 очков, ранг 'Эксперт'{XSSColors.RESET}")
+
+        input(f"\n{XSSColors.PROMPT}Нажмите Enter для возврата к операции...{XSSColors.RESET}")
+
+    # Вспомогательные методы для генерации данных
+
+    def _generate_secret_code(self, length):
+        """Генерирует секретный код"""
+        chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return ''.join(random.choices(chars, k=length))
+
+    def _generate_coordinates(self):
+        """Генерирует координаты"""
+        lat = random.uniform(-90, 90)
+        lon = random.uniform(-180, 180)
+        return f"{lat:.4f},{lon:.4f}"
+
+    def _generate_time_code(self):
+        """Генерирует временной код"""
+        hour = random.randint(0, 23)
+        minute = random.randint(0, 59)
+        return f"{hour:02d}:{minute:02d}"
+
+    def _generate_operation_plan(self):
+        """Генерирует план операции"""
+        operations = ["INFILTRATE", "EXTRACT", "OBSERVE", "NEUTRALIZE"]
+        targets = ["ALPHA", "BRAVO", "CHARLIE", "DELTA"]
+        times = ["0300", "1500", "2100", "0600"]
+
+        op = random.choice(operations)
+        target = random.choice(targets)
+        time_code = random.choice(times)
+
+        return f"OP:{op}|TGT:{target}|TIME:{time_code}|AUTH:PHANTOM"
+
+    def _generate_intelligence_report(self):
+        """Генерирует разведывательный отчет"""
+        agencies = ["CIA", "FSB", "MSS", "MOSSAD"]
+        statuses = ["CONFIRMED", "PROBABLE", "POSSIBLE"]
+        threats = ["HIGH", "MEDIUM", "LOW"]
+
+        agency = random.choice(agencies)
+        status = random.choice(statuses)
+        threat = random.choice(threats)
+        asset_id = self._generate_secret_code(6)
+
+        return f"INTEL:{agency}|STATUS:{status}|THREAT:{threat}|ASSET:{asset_id}|CLASS:TS/SCI"
+
+    def _get_method_info(self, method):
+        """Возвращает информацию о методе сокрытия"""
+        methods = {
+            'lsb_image': {
+                'name': '🖼️ LSB Steganography',
+                'description': 'Сокрытие данных в младших битах изображений',
+                'stealth': 'medium',
+                'capacity': 'Высокая'
+            },
+            'text_spacing': {
+                'name': '📝 Text Spacing',
+                'description': 'Использование интервалов в тексте для кодирования',
+                'stealth': 'high',
+                'capacity': 'Низкая'
+            },
+            'dns_timing': {
+                'name': '🌐 DNS Timing',
+                'description': 'Кодирование в интервалах DNS-запросов',
+                'stealth': 'medium',
+                'capacity': 'Средняя'
+            },
+            'tcp_timestamp': {
+                'name': '📡 TCP Timestamp',
+                'description': 'Использование полей временных меток TCP',
+                'stealth': 'low',
+                'capacity': 'Средняя'
+            },
+            'icmp_echo': {
+                'name': '📶 ICMP Echo',
+                'description': 'Сокрытие в ICMP ping-пакетах',
+                'stealth': 'low',
+                'capacity': 'Низкая'
+            },
+            'file_slack': {
+                'name': '💾 File Slack Space',
+                'description': 'Использование неиспользуемого пространства файлов',
+                'stealth': 'very_high',
+                'capacity': 'Средняя'
+            },
+            'blockchain_meta': {
+                'name': '₿ Blockchain Metadata',
+                'description': 'Сокрытие в метаданных блокчейн-транзакций',
+                'stealth': 'very_high',
+                'capacity': 'Очень низкая'
+            },
+            'audio_spectral': {
+                'name': '🎵 Audio Spectral',
+                'description': 'Спектральное сокрытие в аудиофайлах',
+                'stealth': 'high',
+                'capacity': 'Высокая'
+            }
+        }
+        return methods.get(method, {'name': 'Unknown', 'description': 'Unknown method', 'stealth': 'low',
+                                    'capacity': 'Unknown'})
+
+    def _get_stealth_rating(self, stealth_level):
+        """Возвращает рейтинг скрытности с цветом"""
+        ratings = {
+            'very_low': f"{XSSColors.DANGER}★☆☆☆☆ Очень низкая{XSSColors.RESET}",
+            'low': f"{XSSColors.ERROR}★★☆☆☆ Низкая{XSSColors.RESET}",
+            'medium': f"{XSSColors.WARNING}★★★☆☆ Средняя{XSSColors.RESET}",
+            'high': f"{XSSColors.SUCCESS}★★★★☆ Высокая{XSSColors.RESET}",
+            'very_high': f"{XSSColors.BRIGHT_GREEN}★★★★★ Очень высокая{XSSColors.RESET}"
+        }
+        return ratings.get(stealth_level, "Unknown")
+
+    def _get_risk_color(self, risk_level):
+        """Возвращает цвет для уровня риска"""
+        colors = {
+            'Низкий': XSSColors.SUCCESS,
+            'Средний': XSSColors.WARNING,
+            'Высокий': XSSColors.ERROR,
+            'Критический': XSSColors.DANGER,
+            'Экстремальный': XSSColors.DANGER
+        }
+        return colors.get(risk_level, XSSColors.INFO)
+
+    def _get_risk_color_by_level(self, risk_percentage):
+        """Возвращает цвет для процентного риска"""
+        if risk_percentage <= 20:
+            return XSSColors.SUCCESS
+        elif risk_percentage <= 40:
+            return XSSColors.WARNING
+        elif risk_percentage <= 70:
+            return XSSColors.ERROR
+        else:
+            return XSSColors.DANGER
+
+    def _get_effectiveness_color(self, effectiveness):
+        """Возвращает цвет для эффективности системы"""
+        if effectiveness >= 80:
+            return XSSColors.DANGER
+        elif effectiveness >= 60:
+            return XSSColors.ERROR
+        elif effectiveness >= 40:
+            return XSSColors.WARNING
+        else:
+            return XSSColors.SUCCESS
+
+    def _get_suspicion_color(self, suspicion_level):
+        """Возвращает цвет для уровня подозрительности"""
+        colors = {
+            'very_low': XSSColors.SUCCESS,
+            'low': XSSColors.INFO,
+            'medium': XSSColors.WARNING,
+            'high': XSSColors.ERROR,
+            'very_high': XSSColors.DANGER
+        }
+        return colors.get(suspicion_level, XSSColors.INFO)
 
 class PortScanningGame(Minigame):
     """Мини-игра "Сканирование портов"."""
